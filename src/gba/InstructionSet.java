@@ -5,24 +5,24 @@ public class InstructionSet {
 //	8-bit opcodes
 //  #############
 	
-//	 NOP
+//	NOP
 	public static void NOP() {
 		// Do nothing
 		Cpu.cycles += 4;
 	}
 	
-//	 	LD BC, d16
+//	LD BC, d16
 	public static void LD_BC_d16() {
 		Cpu.C = Cpu.fetch();
 		Cpu.B = Cpu.fetch();
 	}
 	
-//	 LD (BC), A
+//	LD (BC), A
 	public static void LD_BC_A() {
 		Ram.setByte(Cpu.getBC(), Cpu.A);
 	}
 	
-//	 INC BC
+//	INC BC
 	public static void INC_BC() {
 		int aux = Cpu.getBC();
 		aux += 1;
@@ -1549,6 +1549,11 @@ public class InstructionSet {
 		if (Cpu.getFlagZ() == 1) {
 			JP_a16();
 		}
+	}
+	
+//	PREFIX
+	public static void PREFIX() {
+		// TO DO:
 	}
 	
 //	CALL Z, a16
