@@ -2,6 +2,7 @@ package gba;
 
 public class Cpu {
 	
+	public static Memory mem;
 	//CPU registers and flags
 	
 	// Registers
@@ -22,10 +23,18 @@ public class Cpu {
 	// Stack Pointer
 	public static int SP;
 	
-	// Program Counter/Pointer
+	// Progmem Counter/Pointer
 	public static int PC;
 	
 	public static boolean IME = false;
+	
+	public static boolean HALT = false;
+	
+	public static boolean haltbugAtm = false;
+	
+	private static int divClocksum = 0;
+	
+	private static int timerClocksum = 0;
 	
 	public static int getBC() {
 		return ((B << 8) + C);
@@ -47,9 +56,18 @@ public class Cpu {
 		return (Cpu.F & 0x80) >> 7;
 	}
 	
+	public static int getFlagN() {
+		return (Cpu.F & 0x40) >> 6;
+	}
+	
+	public static int getFlagH() {
+		return (Cpu.F & 0x20) >> 5;
+	}
+	
 	public static int getFlagC() {
 		return (Cpu.F & 0x10) >> 4;
 	}
+	
 	public static void setFlagZ() {
 		F |= 0x80; // Set flag Z to 1
 	}
@@ -90,11 +108,35 @@ public class Cpu {
 		}
 	}
 	
+	public static void checkCarry8bit(int value) {
+		if (value > 0xff) {
+			setFlagC();
+		} else {
+			resetFlagC();
+		}
+	}
+	
 	public static void checkHalfCarry16bit(int value1, int value2) {
-		if ((value1 & 0xff) + (value2 & 0xff) > 0xff) {
+		if ((value1 & 0xfff) + (value2 & 0xfff) > 0xfff) {
 			setFlagH();
 		} else {
 			resetFlagH();
+		}
+	}
+	
+	public static void checkCarry16bit(int value) {
+		if (value > 0xffff) {
+			setFlagC();
+		} else {
+			resetFlagC();
+		}
+	}
+	
+	public static void checkCarry8bitSub(int value1, int value2) {
+		if (value1 < value2) {
+			setFlagC();
+		} else {
+			resetFlagC();
 		}
 	}
 	
@@ -114,35 +156,11 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkCarry8bit(int value) {
-		if (value > 0xff) {
-			setFlagH();
-		} else {
-			resetFlagH();
-		}
-	}
-	
-	public static void checkCarry16bit(int value) {
-		if (value > 0xffff) {
-			setFlagH();
-		} else {
-			resetFlagH();
-		}
-	}
-	
-	public static void checkCarry8bitSub(int value1, int value2) {
-		if (value1 < value2) {
-			setFlagH();
-		} else {
-			resetFlagH();
-		}
-	}
-	
 	public static void checkCarry16bitSub(int value1, int value2) {
 		if (value1 < value2) {
-			setFlagH();
+			setFlagC();
 		} else {
-			resetFlagH();
+			resetFlagC();
 		}
 	}
 	
@@ -175,42 +193,307 @@ public class Cpu {
 	    return ((n >> k) | (n << (8 - k)))  & 0xff;
 	}
 	
+//	FFFF — IE: Interrupt enable
+//	
+//	Bit 0: VBlank   Interrupt Enable  (INT $40)  (1=Enable)
+//	Bit 1: LCD STAT Interrupt Enable  (INT $48)  (1=Enable)
+//	Bit 2: Timer    Interrupt Enable  (INT $50)  (1=Enable)
+//	Bit 3: Serial   Interrupt Enable  (INT $58)  (1=Enable)
+//	Bit 4: Joypad   Interrupt Enable  (INT $60)  (1=Enable)
+	
+	private boolean getIEVBlank() {
+		if ((mem.getByte(0xffff) & 0x01) == 0x01) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean getIELCDSTAT() {
+		if ((mem.getByte(0xffff) & 0x02) == 0x02) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean getIETimer() {
+		if ((mem.getByte(0xffff) & 0x04) == 0x04) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean getIESerial() {
+		if ((mem.getByte(0xffff) & 0x08) == 0x08) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean getIEJoypad() {
+		if ((mem.getByte(0xffff) & 0x16) == 0x16) {
+			return true;
+		}
+		return false;
+	}
+	
+//	FF0F — IF: Interrupt flag
+//	
+//	Bit 0: VBlank   Interrupt Request (INT $40)  (1=Request)
+//	Bit 1: LCD STAT Interrupt Request (INT $48)  (1=Request)
+//	Bit 2: Timer    Interrupt Request (INT $50)  (1=Request)
+//	Bit 3: Serial   Interrupt Request (INT $58)  (1=Request)
+//	Bit 4: Joypad   Interrupt Request (INT $60)  (1=Request)
+	
+	private boolean getIFVBlank() {
+		if ((mem.getByte(0xff0f) & 0x01) == 0x01) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean getIFLCDSTAT() {
+		if ((mem.getByte(0xff0f) & 0x02) == 0x02) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean getIFTimer() {
+		if ((mem.getByte(0xff0f) & 0x04) == 0x04) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean getIFSerial() {
+		if ((mem.getByte(0xff0f) & 0x08) == 0x08) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean getIFJoypad() {
+		if ((mem.getByte(0xff0f) & 0x16) == 0x16) {
+			return true;
+		}
+		return false;
+	}
+	
+	private void resetIFVBlank() {
+		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xfe);
+	}
+	
+	private void resetIFLCDSTAT() {
+		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xfd);
+	}
+	
+	private void resetIFTimer() {
+		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xfb);
+	}
+	
+	private void resetIFSerial() {
+		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xf7);
+	}
+	
+	private void resetIFJoypad() {
+		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xef);
+	}
+	
 	public static int fetch() {
 		int pc = PC;
 		PC += 1;
-		return Ram.getByte(pc) & 0xff;
+		
+		return mem.getByte(pc);
+	}
+	
+	public static int fetchSigned() {
+		int pc = PC;
+		PC += 1;
+		return mem.getSignedByte(pc);
 	}
 	
 	public static int fetchSP() {
 		int sp = SP;
 		SP += 1;
-		return Ram.getByte(sp) & 0xff;
+		return mem.getByte(sp);
 		
 	}
 	
 	public static int cycles = 0;
 	
 	public Cpu() {
-		A = 0x00;
-		F = 0x00;
+		
+		mem = Memory.getInstance();
+		
+		A = 0x01;
+		F = 0xb0;
 		
 		B = 0x00;
-		C = 0x00;
+		C = 0x13;
 		
 		D = 0x00;
-		E = 0x00;
+		E = 0xd8;
 		
-		H = 0x00;
-		L = 0x00;
+		H = 0x01;
+		L = 0x4d;
 		
-		SP = 0x0000;
+		SP = 0xfffe;
 		
-		PC = 0x0000;
+		PC = 0x0100;
 	}
 	
-	public static void decode(int op) {
-		if (op == 0xCB) {
-			switch(op) {
+	public void loop() {
+		int opcode;
+		PC = 0x0100;
+		
+		System.out.println("Running...");
+
+		while (true) {
+			
+			cycles = 0;
+			opcode = fetch();
+			decode(opcode);
+			handleInterrupts();
+			handleTimer(cycles);
+			
+			test();
+		}
+	}
+	
+	private void test() {
+//	    blarggs test - serial output
+		if (mem.getByte(0xff02) == 0x81) {
+		    char c = (char) mem.getByte(0xff01);
+		    System.out.print(c);
+		    mem.setByte(0xff02, 0x00);
+		}
+	}
+	
+	private boolean handleInterrupts() {
+		if (IME == true) {
+						
+			//  v-blank interrupt
+			if (getIEVBlank() & getIFVBlank()) {
+				SP -= 1;
+				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				SP -= 1;
+				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				PC = 0x40;
+				InstructionSet.DI();
+				resetIFVBlank();
+				Cpu.cycles += 16; // Add the other cycles beside DI()
+				Cpu.HALT = false;
+				return true;
+			}
+			
+			// LCD STAT interrupt 
+			if (getIELCDSTAT() & getIFLCDSTAT()) {
+				SP -= 1;
+				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				SP -= 1;
+				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				PC = 0x48;
+				InstructionSet.DI();
+				resetIFLCDSTAT();
+				Cpu.cycles += 16; // Add the other cycles beside DI()
+				Cpu.HALT = false;
+				return true;
+			}
+			
+			// Timer interrupt
+			if (getIETimer() & getIFTimer()) {
+				SP -= 1;
+				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				SP -= 1;
+				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				PC = 0x50;
+				InstructionSet.DI();
+				resetIFTimer();
+				Cpu.cycles += 16; // Add the other cycles beside DI()
+				Cpu.HALT = false;
+				return true;
+			}
+			
+			// Serial interrupt
+			if (getIESerial() & getIFSerial()) {
+				SP -= 1;
+				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				SP -= 1;
+				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				PC = 0x58;
+				InstructionSet.DI();
+				resetIFSerial();
+				Cpu.cycles += 16; // Add the other cycles beside DI()
+				Cpu.HALT = false;
+				return true;
+			}
+			
+			// Joypad interrupt
+			if (getIEJoypad() & getIFJoypad()) {
+				SP -= 1;
+				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				SP -= 1;
+				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				PC = 0x60;
+				InstructionSet.DI();
+				resetIFJoypad();
+				Cpu.cycles += 16; // Add the other cycles beside DI()
+				Cpu.HALT = false;
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private void handleTimer(int cycles) {
+	    //  set divider
+		divClocksum += cycles;
+		
+		if (divClocksum >= 256) {
+			divClocksum -= 256;
+			int res = (mem.getByte(0xff04) + 1) & 0xff;
+			mem.setByte(0xff04, res);
+		}
+
+//		check if timer is on
+		if ((mem.getByte(0xff07) & 0x04) == 0x04) {
+			
+//			set frequency
+			int freq = 4096; //  Hz
+			if ((mem.getByte(0xff07) & 0x03) == 0x01)     //  mask last 2 bits
+				freq = 262144;
+			else if ((mem.getByte(0xff07) & 0x03) == 0x02)    //  mask last 2 bits
+				freq = 65536;
+			else if ((mem.getByte(0xff07) & 0x03) == 0x03)    //  mask last 2 bits
+				freq = 16384;
+			
+//			increase helper counter
+			timerClocksum += cycles;
+			
+//			increment the timer according to the frequency (synched to the processed opcodes)
+			while (timerClocksum >= (4194304 / freq)) {
+				
+//				increase TIMA
+				int res = (mem.getByte(0xff05) + 1) & 0xff;
+				mem.setByte(0xff05, res);
+//				check TIMA for overflow
+				if (mem.getByte(0xff05) == 0x00) {
+//					set timer interrupt request
+					mem.setByte(0xff0f, mem.getByte(0xff0f) | 0x04);
+//					reset timer to timer modulo
+					mem.setByte(0xff05, mem.getByte(0xff06));
+				}
+		        
+				timerClocksum -= (4194304 / freq);
+			}
+		}
+	}
+	
+	private void decode(int opcode) {
+		if (opcode == 0xCB) {
+			opcode = fetch();
+			switch(opcode) {
 				case 0:
 					InstructionSet.RLC_B();
 				break;
@@ -440,7 +723,7 @@ public class Cpu {
 					InstructionSet.BIT_1_E();
 				break;
 				case 76:
-					InstructionSet.BIT_0_H();
+					InstructionSet.BIT_1_H();
 				break;
 				case 77:
 					InstructionSet.BIT_1_L();
@@ -542,7 +825,7 @@ public class Cpu {
 					InstructionSet.BIT_5_L();
 				break;
 				case 110:
-					InstructionSet.BIT_5_H();
+					InstructionSet.BIT_5_HL();
 				break;
 				case 111:
 					InstructionSet.BIT_5_A();
@@ -614,7 +897,7 @@ public class Cpu {
 					InstructionSet.RES_0_L();
 				break;
 				case 134:
-					InstructionSet.RES_0_H();
+					InstructionSet.RES_0_HL();
 				break;
 				case 135:
 					InstructionSet.RES_0_A();
@@ -981,7 +1264,7 @@ public class Cpu {
 				break;
 			}
 		} else {
-			switch(op) {
+			switch(opcode) {
 				case 0:
 					InstructionSet.NOP();
 				break;
@@ -1004,7 +1287,7 @@ public class Cpu {
 					InstructionSet.LD_B_d8();
 				break;
 				case 7:
-					InstructionSet.RLC_A();
+					InstructionSet.RLCA();
 				break;
 				case 8:
 					InstructionSet.LD_a16_SP();
@@ -1079,7 +1362,7 @@ public class Cpu {
 					InstructionSet.RRA();
 				break;
 				case 32:
-					InstructionSet.JR_NC_s8();
+					InstructionSet.JR_NZ_s8();
 				break;
 				case 33:
 					InstructionSet.LD_HL_d16();
@@ -1139,7 +1422,7 @@ public class Cpu {
 					InstructionSet.INC_SP();
 				break;
 				case 52:
-					InstructionSet.INC_H();
+					InstructionSet.INC_HLmem();
 				break;
 				case 53:
 					InstructionSet.DEC_HLmem();
@@ -1334,7 +1617,7 @@ public class Cpu {
 					InstructionSet.LD_HL_H();
 				break;
 				case 117:
-					InstructionSet.LD_H_L();
+					InstructionSet.LD_HL_L();
 				break;
 				case 118:
 					InstructionSet.HALT();
@@ -1457,7 +1740,7 @@ public class Cpu {
 					InstructionSet.SBC_A_L();
 				break;
 				case 158:
-					InstructionSet.SBC_A_H();
+					InstructionSet.SBC_A_HL();
 				break;
 				case 159:
 					InstructionSet.SBC_A_A();
@@ -1590,9 +1873,6 @@ public class Cpu {
 				break;
 				case 202:
 					InstructionSet.JP_Z_a16();
-				break;
-				case 203:
-					InstructionSet.PREFIX();
 				break;
 				case 204:
 					InstructionSet.CALL_Z_a16();
