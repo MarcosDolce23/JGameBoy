@@ -1,8 +1,21 @@
 package gba;
 
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+
 public class Cpu {
 	
 	public static Memory mem;
+	
+	Ppu ppu;
+	
+	// CPU Timing
+	
+    public int cyclespersec = 4194304; // 4194304
+
+    public int cyclesperframe; 
+    public int interval = 0;
+	
 	//CPU registers and flags
 	
 	// Registers
@@ -230,7 +243,7 @@ public class Cpu {
 	}
 	
 	private boolean getIEJoypad() {
-		if ((mem.getByte(0xffff) & 0x16) == 0x16) {
+		if ((mem.getByte(0xffff) & 0x10) == 0x10) {
 			return true;
 		}
 		return false;
@@ -273,7 +286,7 @@ public class Cpu {
 	}
 	
 	private boolean getIFJoypad() {
-		if ((mem.getByte(0xff0f) & 0x16) == 0x16) {
+		if ((mem.getByte(0xff0f) & 0x10) == 0x10) {
 			return true;
 		}
 		return false;
@@ -321,8 +334,9 @@ public class Cpu {
 	
 	public static int cycles = 0;
 	
-	public Cpu() {
+	public Cpu(Ppu ppu) {
 		
+		this.ppu = ppu; 
 		mem = Memory.getInstance();
 		
 		A = 0x01;
@@ -339,25 +353,54 @@ public class Cpu {
 		
 		SP = 0xfffe;
 		
-		PC = 0x0100;
+		PC = 0x0000;
 	}
 	
-	public void loop() {
-		int opcode;
+	public void loopExe(int extractCycles) throws InterruptedException {
 		PC = 0x0100;
+		cycles = 0;
 		
 		System.out.println("Running...");
 
 		while (true) {
+			Long msBefore = System.currentTimeMillis();
 			
-			cycles = 0;
-			opcode = fetch();
-			decode(opcode);
-			handleInterrupts();
-			handleTimer(cycles);
+			extractCycles = runFrame(extractCycles);
 			
-			test();
+			Long msAfter = System.currentTimeMillis();
+			Long msSpent = msBefore - msAfter;
+			
+			// No estoy seguro de si esto está funcionando
+//			TimeUnit.MILLISECONDS.sleep(interval - msSpent);
 		}
+	}
+	
+	private int runFrame(int extractCycles) throws InterruptedException {
+        int cycles = cyclesperframe - extractCycles;
+
+        while (cycles > 0) {
+            cycles -= step();
+        }
+
+        return cycles;
+	}
+	
+	private int step() throws InterruptedException {
+		int opcode;
+		cycles = 0;
+		if (haltbugAtm) {
+			haltbugAtm = false;
+			opcode = mem.getByte(PC);
+		} else
+			opcode = fetch();
+		decode(opcode);
+		handleInterrupts();
+		
+		handleTimer(cycles);
+		ppu.handleScan(cycles);
+		test();
+		
+		return cycles;
 	}
 	
 	private void test() {
@@ -382,7 +425,7 @@ public class Cpu {
 				InstructionSet.DI();
 				resetIFVBlank();
 				Cpu.cycles += 16; // Add the other cycles beside DI()
-				Cpu.HALT = false;
+//				Cpu.HALT = false;
 				return true;
 			}
 			
@@ -396,7 +439,7 @@ public class Cpu {
 				InstructionSet.DI();
 				resetIFLCDSTAT();
 				Cpu.cycles += 16; // Add the other cycles beside DI()
-				Cpu.HALT = false;
+//				Cpu.HALT = false;
 				return true;
 			}
 			
@@ -410,7 +453,7 @@ public class Cpu {
 				InstructionSet.DI();
 				resetIFTimer();
 				Cpu.cycles += 16; // Add the other cycles beside DI()
-				Cpu.HALT = false;
+//				Cpu.HALT = false;
 				return true;
 			}
 			
@@ -424,7 +467,7 @@ public class Cpu {
 				InstructionSet.DI();
 				resetIFSerial();
 				Cpu.cycles += 16; // Add the other cycles beside DI()
-				Cpu.HALT = false;
+//				Cpu.HALT = false;
 				return true;
 			}
 			
@@ -438,7 +481,7 @@ public class Cpu {
 				InstructionSet.DI();
 				resetIFJoypad();
 				Cpu.cycles += 16; // Add the other cycles beside DI()
-				Cpu.HALT = false;
+//				Cpu.HALT = false;
 				return true;
 			}
 		}
@@ -1262,6 +1305,8 @@ public class Cpu {
 				case 255:
 					InstructionSet.SET_7_A();
 				break;
+				default:
+					System.out.println("Invalid opcode");
 			}
 		} else {
 			switch(opcode) {
@@ -2030,6 +2075,8 @@ public class Cpu {
 				case 255:
 					InstructionSet.RST_7();
 				break;
+				default:
+					System.out.println("Invalid opcode");
 			}
 		}
 	}

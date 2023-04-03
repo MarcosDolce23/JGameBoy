@@ -1066,7 +1066,7 @@ public class InstructionSet {
         else {
             Cpu.HALT = true;
 
-            Cpu.PC --;
+            Cpu.PC--;
             Cpu.PC &= 0xffff;
         }
         
@@ -1352,7 +1352,7 @@ public class InstructionSet {
 		Cpu.checkCarry8bit(sum);
 
 		Cpu.A = res;
-		Cpu.cycles += 4;
+		Cpu.cycles += 8;
 	}
 
 //	ADC A, A
@@ -2050,7 +2050,8 @@ public class InstructionSet {
 		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
 		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-		Cpu.PC = mem.getByte(0x00);
+//		Cpu.PC = mem.getByte(0x00);
+		Cpu.PC = 0x0000;
 		Cpu.cycles += 16;
 	}
 	
@@ -2074,7 +2075,7 @@ public class InstructionSet {
 		int h = Cpu.fetchSP();
 		int res = (h << 8) + l;
 		Cpu.PC = res & 0xffff;
-		Cpu.cycles += 16;
+		Cpu.cycles += 20;
 	}
 
 //	JP Z, a16
@@ -2148,7 +2149,8 @@ public class InstructionSet {
 		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
 		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-		Cpu.PC = mem.getByte(0x08);
+//		Cpu.PC = mem.getByte(0x08);
+		Cpu.PC = 0x0008;
 		Cpu.cycles += 16;
 	}
 
@@ -2233,6 +2235,7 @@ public class InstructionSet {
 		Cpu.SP -= 1;
 		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
 		Cpu.PC = mem.getByte(0x10);
+		Cpu.PC = 0x0010;
 		Cpu.cycles += 16;
 	}
 
@@ -2313,7 +2316,8 @@ public class InstructionSet {
 		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
 		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-		Cpu.PC = mem.getByte(0x18);
+//		Cpu.PC = mem.getByte(0x18);
+		Cpu.PC = 0x0018;
 		Cpu.cycles += 16;
 	}
 	
@@ -2377,7 +2381,8 @@ public class InstructionSet {
 		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
 		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-		Cpu.PC = mem.getByte(0x20);
+//		Cpu.PC = mem.getByte(0x20);
+		Cpu.PC = 0x0020;
 		Cpu.cycles += 16;
 	}
 	
@@ -2440,7 +2445,8 @@ public class InstructionSet {
 		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
 		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-		Cpu.PC = mem.getByte(0x28);
+//		Cpu.PC = mem.getByte(0x28);
+		Cpu.PC = 0x0028;
 		Cpu.cycles += 16;
 	}
 
@@ -2510,7 +2516,8 @@ public class InstructionSet {
 		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
 		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-		Cpu.PC = mem.getByte(0x30);
+//		Cpu.PC = mem.getByte(0x30);
+		Cpu.PC = 0x0030;
 		Cpu.cycles += 16;
 	}
 	
@@ -2581,7 +2588,8 @@ public class InstructionSet {
 		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
 		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-		Cpu.PC = mem.getByte(0x38);
+//		Cpu.PC = mem.getByte(0x38);
+		Cpu.PC = 0x0038;
 		Cpu.cycles += 16;
 	}
 
