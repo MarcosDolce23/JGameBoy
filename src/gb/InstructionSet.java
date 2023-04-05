@@ -1,8 +1,6 @@
-package gba;
+package gb;
 
 public class InstructionSet {
-	
-	public static Memory mem = Memory.getInstance();
 	
 //  #############
 //	8-bit opcodes
@@ -29,7 +27,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_BC_A() {
-		mem.setByte(Cpu.getBC(), Cpu.A);
+		Main.mmu.setByte(Cpu.getBC(), Cpu.A);
 		Cpu.cycles += 8;
 	}
 	
@@ -97,8 +95,8 @@ public class InstructionSet {
 //	- - - -
 	public static void LD_a16_SP() {
 		int index = (Cpu.fetch() + (Cpu.fetch() << 8)) & 0xffff;
-		mem.setByte(index, Cpu.SP & 0xFF);
-		mem.setByte(index + 1, (Cpu.SP >> 8) & 0xff);
+		Main.mmu.setByte(index, Cpu.SP & 0xFF);
+		Main.mmu.setByte(index + 1, (Cpu.SP >> 8) & 0xff);
 		Cpu.cycles += 20;
 	}
 	
@@ -119,7 +117,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_BC() {
-		Cpu.A = mem.getByte(Cpu.getBC());
+		Cpu.A = Main.mmu.getByte(Cpu.getBC());
 		Cpu.cycles += 8;
 	}
 	
@@ -202,7 +200,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_DE_A() {
-		mem.setByte(Cpu.getDE(), Cpu.A);
+		Main.mmu.setByte(Cpu.getDE(), Cpu.A);
 		Cpu.cycles += 8;
 	}
 	
@@ -295,7 +293,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_DE() {
-		Cpu.A = mem.getByte(Cpu.getDE());
+		Cpu.A = Main.mmu.getByte(Cpu.getDE());
 		Cpu.cycles += 8;
 	}
 
@@ -388,7 +386,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_HLinc_A() {
-		mem.setByte(Cpu.getHL(), Cpu.A);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.A);
 		
 		// TO DO: que pasa cuando incremento enteros paso los 8 bits y luego los paso a la mem?
 		// en principio parece no generar problemas.
@@ -505,7 +503,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_HLinc() {
-		Cpu.A = mem.getByte(Cpu.getHL());
+		Cpu.A = Main.mmu.getByte(Cpu.getHL());
 		int aux  = Cpu.getHL() + 1;
 		Cpu.L = aux & 0xFF; // Set the lower 8 bits
 		Cpu.H = (aux >> 8) & 0xff; // Set the higher 8 bits
@@ -588,7 +586,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_HLdec_A() {
-		mem.setByte(Cpu.getHL(), Cpu.A);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.A);
 		
 		// TO DO: que pasa cuando decremento enteros y luego los paso a la mem?
 		// en principio parece no generar problemas.
@@ -610,9 +608,9 @@ public class InstructionSet {
 //	1  12
 //	Z 0 H -
 	public static void INC_HLmem() {
-		Cpu.checkHalfCarry8bit(mem.getByte(Cpu.getHL()),1); // Check if there is Half Carry before the operation
-		mem.setByte(Cpu.getHL(), (mem.getByte(Cpu.getHL()) + 1) & 0xff);
-		Cpu.checkZero8bit(mem.getByte(Cpu.getHL()));
+		Cpu.checkHalfCarry8bit(Main.mmu.getByte(Cpu.getHL()),1); // Check if there is Half Carry before the operation
+		Main.mmu.setByte(Cpu.getHL(), (Main.mmu.getByte(Cpu.getHL()) + 1) & 0xff);
+		Cpu.checkZero8bit(Main.mmu.getByte(Cpu.getHL()));
 		Cpu.resetFlagN();
 		Cpu.cycles += 12;
 	}
@@ -621,9 +619,9 @@ public class InstructionSet {
 //	1  12
 //	Z 1 H -
 	public static void DEC_HLmem() {
-		Cpu.checkHalfCarry8bitSub(mem.getByte(Cpu.getHL()),1); // Check if there is Half Carry before the operation
-		mem.setByte(Cpu.getHL(), (mem.getByte(Cpu.getHL()) - 1) & 0xff);
-		Cpu.checkZero8bit(mem.getByte(Cpu.getHL()));
+		Cpu.checkHalfCarry8bitSub(Main.mmu.getByte(Cpu.getHL()),1); // Check if there is Half Carry before the operation
+		Main.mmu.setByte(Cpu.getHL(), (Main.mmu.getByte(Cpu.getHL()) - 1) & 0xff);
+		Cpu.checkZero8bit(Main.mmu.getByte(Cpu.getHL()));
 		Cpu.setFlagN();
 		Cpu.cycles += 12;
 	}
@@ -632,7 +630,7 @@ public class InstructionSet {
 //	2  12
 //	- - - -
 	public static void LD_HL_d8() {
-		mem.setByte(Cpu.getHL(), Cpu.fetch());
+		Main.mmu.setByte(Cpu.getHL(), Cpu.fetch());
 		Cpu.cycles += 12;
 	}
 	
@@ -675,7 +673,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_HLdec() {
-		Cpu.A = mem.getByte(Cpu.getHL());
+		Cpu.A = Main.mmu.getByte(Cpu.getHL());
 		int aux  = Cpu.getHL() - 1;
 		Cpu.L = aux & 0xFF; // Set the lower 8 bits
 		Cpu.H = (aux >> 8) & 0xff; // Set the higher 8 bits
@@ -771,7 +769,7 @@ public class InstructionSet {
 
 //	 LD B, (HL)
 	public static void LD_B_HL() {
-		Cpu.B = mem.getByte(Cpu.getHL());
+		Cpu.B = Main.mmu.getByte(Cpu.getHL());
 		Cpu.cycles += 8;
 	}
 
@@ -818,7 +816,7 @@ public class InstructionSet {
 	
 //	 LD C, (HL)
 	public static void LD_C_HL() {
-		Cpu.C = mem.getByte(Cpu.getHL());
+		Cpu.C = Main.mmu.getByte(Cpu.getHL());
 		Cpu.cycles += 8;
 	}
 
@@ -865,7 +863,7 @@ public class InstructionSet {
 
 //	LD D, (HL)
 	public static void LD_D_HL() {
-		Cpu.D = mem.getByte(Cpu.getHL());
+		Cpu.D = Main.mmu.getByte(Cpu.getHL());
 		Cpu.cycles += 8;
 	}
 
@@ -912,7 +910,7 @@ public class InstructionSet {
 
 //	LD E, (HL)
 	public static void LD_E_HL() {
-		Cpu.E = mem.getByte(Cpu.getHL());
+		Cpu.E = Main.mmu.getByte(Cpu.getHL());
 		Cpu.cycles += 8;
 	}
 
@@ -959,7 +957,7 @@ public class InstructionSet {
 
 //	LD H, (HL)
 	public static void LD_H_HL() {
-		Cpu.H = mem.getByte(Cpu.getHL());
+		Cpu.H = Main.mmu.getByte(Cpu.getHL());
 		Cpu.cycles += 8;
 	}
 
@@ -1006,7 +1004,7 @@ public class InstructionSet {
 
 //	LD L, (HL)
 	public static void LD_L_HL() {
-		Cpu.L = mem.getByte(Cpu.getHL());
+		Cpu.L = Main.mmu.getByte(Cpu.getHL());
 		Cpu.cycles += 8;
 	}
 
@@ -1018,44 +1016,44 @@ public class InstructionSet {
 	
 //	LD (HL), B
 	public static void LD_HL_B() {
-		mem.setByte(Cpu.getHL(), Cpu.B);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.B);
 		Cpu.cycles += 8;
 	}
 	
 //	LD (HL), C
 	public static void LD_HL_C() {
-		mem.setByte(Cpu.getHL(), Cpu.C);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.C);
 		Cpu.cycles += 8;
 	}
 	
 //	LD (HL), D
 	public static void LD_HL_D() {
-		mem.setByte(Cpu.getHL(), Cpu.D);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.D);
 		Cpu.cycles += 8;
 	}
 	
 //	LD (HL), E
 	public static void LD_HL_E() {
-		mem.setByte(Cpu.getHL(), Cpu.E);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.E);
 		Cpu.cycles += 8;
 	}
 	
 //	LD (HL), H
 	public static void LD_HL_H() {
-		mem.setByte(Cpu.getHL(), Cpu.H);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.H);
 		Cpu.cycles += 8;
 	}
 	
 //	LD (HL), L
 	public static void LD_HL_L() {
-		mem.setByte(Cpu.getHL(), Cpu.L);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.L);
 		Cpu.cycles += 8;
 	}
 	
 //	HALT
 	public static void HALT() {
-        int IF = mem.getByte(0xff0f);
-        int IE = mem.getByte(0xffff);
+        int IF = Main.mmu.getByte(0xff0f);
+        int IE = Main.mmu.getByte(0xffff);
 
         // Exit hell if an interrupt is valid to be serviced
         if ((IF & IE & 0x1f) > 0) {
@@ -1075,7 +1073,7 @@ public class InstructionSet {
 	
 //	LD (HL), A
 	public static void LD_HL_A() {
-		mem.setByte(Cpu.getHL(), Cpu.A);
+		Main.mmu.setByte(Cpu.getHL(), Cpu.A);
 		Cpu.cycles += 8;
 	}
 
@@ -1117,7 +1115,7 @@ public class InstructionSet {
 
 //	LD A, (HL)
 	public static void LD_A_HL() {
-		Cpu.A = mem.getByte(Cpu.getHL());
+		Cpu.A = Main.mmu.getByte(Cpu.getHL());
 		Cpu.cycles += 8;
 	}
 	
@@ -1195,9 +1193,9 @@ public class InstructionSet {
 //	ADD A, (HL)
 //	Z 0 H C
 	public static void ADD_A_HL() {
-		Cpu.checkHalfCarry8bit(Cpu.A, mem.getByte(Cpu.getHL()));
-		Cpu.checkCarry8bit(Cpu.A + mem.getByte(Cpu.getHL()));
-		Cpu.A = (Cpu.A + mem.getByte(Cpu.getHL())) & 0xff;
+		Cpu.checkHalfCarry8bit(Cpu.A, Main.mmu.getByte(Cpu.getHL()));
+		Cpu.checkCarry8bit(Cpu.A + Main.mmu.getByte(Cpu.getHL()));
+		Cpu.A = (Cpu.A + Main.mmu.getByte(Cpu.getHL())) & 0xff;
 		Cpu.checkZero8bit(Cpu.A);
 		
 		Cpu.resetFlagN();
@@ -1338,7 +1336,7 @@ public class InstructionSet {
 //	ADC A, (HL)
 //	Z 0 H C
 	public static void ADC_A_HL() {
-		int val = mem.getByte(Cpu.getHL()) + Cpu.getFlagC();
+		int val = Main.mmu.getByte(Cpu.getHL()) + Cpu.getFlagC();
 		
 		int sum = Cpu.A + val;
 		int res = sum & 0xff;
@@ -1346,7 +1344,7 @@ public class InstructionSet {
 		Cpu.checkZero8bit(res);
 		Cpu.resetFlagH();
 		Cpu.resetFlagN();
-		if ((Cpu.A & 0xf) + (mem.getByte(Cpu.getHL()) & 0xf) + Cpu.getFlagC() > 0xf) {
+		if ((Cpu.A & 0xf) + (Main.mmu.getByte(Cpu.getHL()) & 0xf) + Cpu.getFlagC() > 0xf) {
 			Cpu.setFlagH();
 		}
 		Cpu.checkCarry8bit(sum);
@@ -1444,9 +1442,9 @@ public class InstructionSet {
 //	SUB (HL)
 //	Z 1 H C
 	public static void SUB_A_HL() {
-		Cpu.checkHalfCarry8bitSub(Cpu.A, mem.getByte(Cpu.getHL()));
-		Cpu.checkCarry8bitSub(Cpu.A, mem.getByte(Cpu.getHL()));
-		Cpu.A = (Cpu.A - mem.getByte(Cpu.getHL())) & 0xff;
+		Cpu.checkHalfCarry8bitSub(Cpu.A, Main.mmu.getByte(Cpu.getHL()));
+		Cpu.checkCarry8bitSub(Cpu.A, Main.mmu.getByte(Cpu.getHL()));
+		Cpu.A = (Cpu.A - Main.mmu.getByte(Cpu.getHL())) & 0xff;
 		Cpu.checkZero8bit(Cpu.A);
 		Cpu.setFlagN();
 		Cpu.cycles += 8;
@@ -1580,14 +1578,14 @@ public class InstructionSet {
 //	SBC A, (HL)
 //	Z 1 H C
 	public static void SBC_A_HL() {
-		int val = mem.getByte(Cpu.getHL()) + Cpu.getFlagC();
+		int val = Main.mmu.getByte(Cpu.getHL()) + Cpu.getFlagC();
 		
 		int res = (Cpu.A - val) & 0xff;
 		
 		Cpu.checkZero8bit(res);
 		Cpu.setFlagN();
 		Cpu.resetFlagH();
-		if ((Cpu.A & 0xf) < ((mem.getByte(Cpu.getHL()) & 0xf) + Cpu.getFlagC())) {
+		if ((Cpu.A & 0xf) < ((Main.mmu.getByte(Cpu.getHL()) & 0xf) + Cpu.getFlagC())) {
 			Cpu.setFlagH();
 		}
 		Cpu.checkCarry8bitSub(Cpu.A, val);
@@ -1684,7 +1682,7 @@ public class InstructionSet {
 //	AND (HL)
 //	Z 0 1 0
 	public static void AND_HL() {
-		Cpu.A = Cpu.A & mem.getByte(Cpu.getHL());
+		Cpu.A = Cpu.A & Main.mmu.getByte(Cpu.getHL());
 		Cpu.checkZero8bit(Cpu.A);
 		Cpu.resetFlagN();
 		Cpu.setFlagH();
@@ -1772,7 +1770,7 @@ public class InstructionSet {
 //	XOR (HL)
 //	Z 0 0 0
 	public static void XOR_HL() {
-		Cpu.A = Cpu.A ^ mem.getByte(Cpu.getHL());
+		Cpu.A = Cpu.A ^ Main.mmu.getByte(Cpu.getHL());
 		Cpu.checkZero8bit(Cpu.A);
 		Cpu.resetFlagN();
 		Cpu.resetFlagH();
@@ -1860,7 +1858,7 @@ public class InstructionSet {
 //	OR (HL)
 //	Z 0 0 0
 	public static void OR_HL() {
-		Cpu.A = Cpu.A | mem.getByte(Cpu.getHL());
+		Cpu.A = Cpu.A | Main.mmu.getByte(Cpu.getHL());
 		Cpu.checkZero8bit(Cpu.A);
 		Cpu.resetFlagN();
 		Cpu.resetFlagH();
@@ -1942,10 +1940,10 @@ public class InstructionSet {
 //	CP (HL)
 //	Z 1 H C
 	public static void CP_HL() {
-		Cpu.checkZero8bit(Cpu.A - mem.getByte(Cpu.getHL()));
+		Cpu.checkZero8bit(Cpu.A - Main.mmu.getByte(Cpu.getHL()));
 		Cpu.setFlagN();
-		Cpu.checkHalfCarry8bitSub(Cpu.A, mem.getByte(Cpu.getHL()));
-		Cpu.checkCarry8bitSub(Cpu.A, mem.getByte(Cpu.getHL()));
+		Cpu.checkHalfCarry8bitSub(Cpu.A, Main.mmu.getByte(Cpu.getHL()));
+		Cpu.checkCarry8bitSub(Cpu.A, Main.mmu.getByte(Cpu.getHL()));
 		Cpu.cycles += 8;
 	}
 	
@@ -1974,9 +1972,9 @@ public class InstructionSet {
 //	1  12
 //	- - - -
 	public static void POP_BC() {
-		Cpu.C = mem.getByte(Cpu.SP);
+		Cpu.C = Main.mmu.getByte(Cpu.SP);
 		Cpu.SP += 1;
-		Cpu.B = mem.getByte(Cpu.SP);
+		Cpu.B = Main.mmu.getByte(Cpu.SP);
 		Cpu.SP += 1;
 		Cpu.cycles += 12;
 	}
@@ -2023,9 +2021,9 @@ public class InstructionSet {
 //	- - - -
 	public static void PUSH_BC() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.B);
+		Main.mmu.setByte(Cpu.SP, Cpu.B);
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.C);
+		Main.mmu.setByte(Cpu.SP, Cpu.C);
 		Cpu.cycles += 16;
 	}
 
@@ -2047,10 +2045,10 @@ public class InstructionSet {
 //	- - - -
 	public static void RST_0() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-//		Cpu.PC = mem.getByte(0x00);
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+//		Cpu.PC = Main.mmu.getByte(0x00);
 		Cpu.PC = 0x0000;
 		Cpu.cycles += 16;
 	}
@@ -2112,9 +2110,9 @@ public class InstructionSet {
 		int h = Cpu.fetch();
 		int res = (h << 8) + l;
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
 		Cpu.PC = res & 0xffff;
 		Cpu.cycles += 24;
 	}
@@ -2146,10 +2144,10 @@ public class InstructionSet {
 //	- - - -
 	public static void RST_1() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-//		Cpu.PC = mem.getByte(0x08);
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+//		Cpu.PC = Main.mmu.getByte(0x08);
 		Cpu.PC = 0x0008;
 		Cpu.cycles += 16;
 	}
@@ -2169,9 +2167,9 @@ public class InstructionSet {
 //	1  12
 //	- - - -
 	public static void POP_DE() {
-		Cpu.E = mem.getByte(Cpu.SP);
+		Cpu.E = Main.mmu.getByte(Cpu.SP);
 		Cpu.SP += 1;
-		Cpu.D = mem.getByte(Cpu.SP);
+		Cpu.D = Main.mmu.getByte(Cpu.SP);
 		Cpu.SP += 1;
 		Cpu.cycles += 12;
 	}
@@ -2207,9 +2205,9 @@ public class InstructionSet {
 //	- - - -
 	public static void PUSH_DE() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.D);
+		Main.mmu.setByte(Cpu.SP, Cpu.D);
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.E);
+		Main.mmu.setByte(Cpu.SP, Cpu.E);
 		Cpu.cycles += 16;
 	}
 
@@ -2231,10 +2229,10 @@ public class InstructionSet {
 //	- - - -
 	public static void RST_2() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-		Cpu.PC = mem.getByte(0x10);
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+		Cpu.PC = Main.mmu.getByte(0x10);
 		Cpu.PC = 0x0010;
 		Cpu.cycles += 16;
 	}
@@ -2313,10 +2311,10 @@ public class InstructionSet {
 //	- - - -
 	public static void RST_3() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-//		Cpu.PC = mem.getByte(0x18);
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+//		Cpu.PC = Main.mmu.getByte(0x18);
 		Cpu.PC = 0x0018;
 		Cpu.cycles += 16;
 	}
@@ -2327,7 +2325,7 @@ public class InstructionSet {
 //	- - - -
 	public static void LD_a8_A() {
 		// Debe guardar el contenido del reg A en 0xFF(a8)
-		mem.setByte(0xFF00 | Cpu.fetch(), Cpu.A);
+		Main.mmu.setByte(0xFF00 | Cpu.fetch(), Cpu.A);
 		Cpu.cycles += 12;
 	}
 
@@ -2335,9 +2333,9 @@ public class InstructionSet {
 //	1  12
 //	- - - -
 	public static void POP_HL() {
-		Cpu.L = mem.getByte(Cpu.SP);
+		Cpu.L = Main.mmu.getByte(Cpu.SP);
 		Cpu.SP += 1;
-		Cpu.H = mem.getByte(Cpu.SP);
+		Cpu.H = Main.mmu.getByte(Cpu.SP);
 		Cpu.SP += 1;
 		Cpu.cycles += 12;
 	}
@@ -2346,7 +2344,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_Cmem_A() {
-		mem.setByte(0xff00 | Cpu.C, Cpu.A);
+		Main.mmu.setByte(0xff00 | Cpu.C, Cpu.A);
 		Cpu.cycles += 8;
 	}
 
@@ -2355,9 +2353,9 @@ public class InstructionSet {
 //	- - - -
 	public static void PUSH_HL() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.H);
+		Main.mmu.setByte(Cpu.SP, Cpu.H);
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.L);
+		Main.mmu.setByte(Cpu.SP, Cpu.L);
 		Cpu.cycles += 16;
 	}
 	
@@ -2378,10 +2376,10 @@ public class InstructionSet {
 //	- - - -
 	public static void RST_4() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-//		Cpu.PC = mem.getByte(0x20);
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+//		Cpu.PC = Main.mmu.getByte(0x20);
 		Cpu.PC = 0x0020;
 		Cpu.cycles += 16;
 	}
@@ -2421,7 +2419,7 @@ public class InstructionSet {
 //	- - - -
 	public static void LD_a16_A() {
 		int index = (Cpu.fetch() + (Cpu.fetch() << 8)) & 0xffff;
-		mem.setByte(index, Cpu.A);
+		Main.mmu.setByte(index, Cpu.A);
 		Cpu.cycles += 16;
 	}
 	
@@ -2442,10 +2440,10 @@ public class InstructionSet {
 //	- - - -
 	public static void RST_5() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-//		Cpu.PC = mem.getByte(0x28);
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+//		Cpu.PC = Main.mmu.getByte(0x28);
 		Cpu.PC = 0x0028;
 		Cpu.cycles += 16;
 	}
@@ -2454,7 +2452,7 @@ public class InstructionSet {
 //	2  12
 //	- - - -
 	public static void LD_A_a8() {
-		Cpu.A = mem.getByte(0xff00 | Cpu.fetch());
+		Cpu.A = Main.mmu.getByte(0xff00 | Cpu.fetch());
 		Cpu.cycles += 12;
 	}
 
@@ -2462,9 +2460,9 @@ public class InstructionSet {
 //	1  12
 //	Z N H C
 	public static void POP_AF() {
-		Cpu.F = mem.getByte(Cpu.SP) & 0xf0;
+		Cpu.F = Main.mmu.getByte(Cpu.SP) & 0xf0;
 		Cpu.SP += 1;
-		Cpu.A = mem.getByte(Cpu.SP);
+		Cpu.A = Main.mmu.getByte(Cpu.SP);
 		Cpu.SP += 1;
 		Cpu.cycles += 12;
 	}
@@ -2473,7 +2471,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_Cmem() {
-		Cpu.A = mem.getByte(0xff00 | Cpu.C);
+		Cpu.A = Main.mmu.getByte(0xff00 | Cpu.C);
 		Cpu.cycles += 8;
 	}
 
@@ -2490,9 +2488,9 @@ public class InstructionSet {
 //	- - - -
 	public static void PUSH_AF() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.A);
+		Main.mmu.setByte(Cpu.SP, Cpu.A);
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.F);
+		Main.mmu.setByte(Cpu.SP, Cpu.F);
 		Cpu.cycles += 16;
 	}
 
@@ -2513,10 +2511,10 @@ public class InstructionSet {
 //	- - - -
 	public static void RST_6() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-//		Cpu.PC = mem.getByte(0x30);
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+//		Cpu.PC = Main.mmu.getByte(0x30);
 		Cpu.PC = 0x0030;
 		Cpu.cycles += 16;
 	}
@@ -2556,7 +2554,7 @@ public class InstructionSet {
 //	- - - -
 	public static void LD_A_a16() {
 		int index = (Cpu.fetch() + (Cpu.fetch() << 8)) & 0xffff;
-		Cpu.A = mem.getByte(index);
+		Cpu.A = Main.mmu.getByte(index);
 		Cpu.cycles += 16;
 	}
 
@@ -2585,10 +2583,10 @@ public class InstructionSet {
 //	- - - -
 	public static void RST_7() {
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+		Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 		Cpu.SP -= 1;
-		mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
-//		Cpu.PC = mem.getByte(0x38);
+		Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+//		Cpu.PC = Main.mmu.getByte(0x38);
 		Cpu.PC = 0x0038;
 		Cpu.cycles += 16;
 	}
@@ -2720,15 +2718,15 @@ public class InstructionSet {
 		Cpu.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((mem.getByte(Cpu.getHL()) & 0x80) == 0x80) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x80) == 0x80) {
 			Cpu.setFlagC();
 		} else {
 			Cpu.resetFlagC();
 		}
 		
-		int res = ((mem.getByte(Cpu.getHL()) << 1) | (mem.getByte(Cpu.getHL()) >> 7)) & 0xff; // Rotate to the left
+		int res = ((Main.mmu.getByte(Cpu.getHL()) << 1) | (Main.mmu.getByte(Cpu.getHL()) >> 7)) & 0xff; // Rotate to the left
 		Cpu.checkZero8bit(res);
-		mem.setByte(Cpu.getHL(), res);
+		Main.mmu.setByte(Cpu.getHL(), res);
 		Cpu.cycles += 16;
 	}
 	
@@ -2866,14 +2864,14 @@ public class InstructionSet {
 		Cpu.resetFlagN();
 		Cpu.resetFlagH();
 		
-		if ((mem.getByte(Cpu.getHL()) & 0x01) == 0x01) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x01) == 0x01) {
 			Cpu.setFlagC();
 		} else {
 			Cpu.resetFlagC();
 		}
 		
-		mem.setByte(Cpu.getHL(), ((mem.getByte(Cpu.getHL()) << 7) | (mem.getByte(Cpu.getHL()) >> 1)) & 0xff); // Rotate to right
-		Cpu.checkZero8bit(mem.getByte(Cpu.getHL()));
+		Main.mmu.setByte(Cpu.getHL(), ((Main.mmu.getByte(Cpu.getHL()) << 7) | (Main.mmu.getByte(Cpu.getHL()) >> 1)) & 0xff); // Rotate to right
+		Cpu.checkZero8bit(Main.mmu.getByte(Cpu.getHL()));
 		Cpu.cycles += 16;
 	}
 	
@@ -3037,15 +3035,15 @@ public class InstructionSet {
 		int c = Cpu.getFlagC();
 
 		// Set carry flag
-		if ((mem.getByte(Cpu.getHL()) & 0x80) == 0x80) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x80) == 0x80) {
 			Cpu.setFlagC();
 		} else {
 			Cpu.resetFlagC();
 		}
 		
-		mem.setByte(Cpu.getHL(), (mem.getByte(Cpu.getHL()) << 1) & 0xff);
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | c);
-		Cpu.checkZero8bit(mem.getByte(Cpu.getHL()));
+		Main.mmu.setByte(Cpu.getHL(), (Main.mmu.getByte(Cpu.getHL()) << 1) & 0xff);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | c);
+		Cpu.checkZero8bit(Main.mmu.getByte(Cpu.getHL()));
 		Cpu.cycles += 16;
 	}
 	
@@ -3213,15 +3211,15 @@ public class InstructionSet {
 		int c = (Cpu.getFlagC() << 7);
 
 		// Set carry flag
-		if ((mem.getByte(Cpu.getHL()) & 0x01) == 0x01) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x01) == 0x01) {
 			Cpu.setFlagC();
 		} else {
 			Cpu.resetFlagC();
 		}
 		
-		mem.setByte(Cpu.getHL(), (mem.getByte(Cpu.getHL()) >> 1) & 0xff);
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | c);
-		Cpu.checkZero8bit(mem.getByte(Cpu.getHL()));
+		Main.mmu.setByte(Cpu.getHL(), (Main.mmu.getByte(Cpu.getHL()) >> 1) & 0xff);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | c);
+		Cpu.checkZero8bit(Main.mmu.getByte(Cpu.getHL()));
 		Cpu.cycles += 16;
 	}
 	
@@ -3362,7 +3360,7 @@ public class InstructionSet {
 		Cpu.resetFlagN();
 		Cpu.resetFlagH();
 		
-		int res = mem.getByte(Cpu.getHL());
+		int res = Main.mmu.getByte(Cpu.getHL());
 		
 		if ((res & 0x80) == 0x80) {
 			Cpu.setFlagC();
@@ -3372,7 +3370,7 @@ public class InstructionSet {
 		
 		res = (res << 1) & 0xff;
 		Cpu.checkZero8bit(res);
-		mem.setByte(Cpu.getHL(), res);
+		Main.mmu.setByte(Cpu.getHL(), res);
 		Cpu.cycles += 16;
 	}
 	
@@ -3525,18 +3523,18 @@ public class InstructionSet {
 	public static void SRA_HL() {
 		Cpu.resetFlagN();
 		Cpu.resetFlagH();
-		int bit = mem.getByte(Cpu.getHL()) & 0x80;
-		int res = (mem.getByte(Cpu.getHL()) >> 1) | bit; // Rotate to the right
+		int bit = Main.mmu.getByte(Cpu.getHL()) & 0x80;
+		int res = (Main.mmu.getByte(Cpu.getHL()) >> 1) | bit; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((mem.getByte(Cpu.getHL()) & 0x01) == 0x01) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x01) == 0x01) {
 			Cpu.setFlagC();
 		} else {
 			Cpu.resetFlagC();
 		}
 		
 		Cpu.checkZero8bit(res);
-		mem.setByte(Cpu.getHL(), res & 0xff);
+		Main.mmu.setByte(Cpu.getHL(), res & 0xff);
 		Cpu.cycles += 16;
 	}
 	
@@ -3652,10 +3650,10 @@ public class InstructionSet {
 		Cpu.resetFlagN();
 		Cpu.resetFlagH();
 		Cpu.resetFlagC();
-		int l = mem.getByte(Cpu.getHL()) & 0x0f;
-		int h = mem.getByte(Cpu.getHL()) & 0xf0;
-		mem.setByte(Cpu.getHL(), (l << 4) | (h >> 4));
-		Cpu.checkZero8bit(mem.getByte(Cpu.getHL()));
+		int l = Main.mmu.getByte(Cpu.getHL()) & 0x0f;
+		int h = Main.mmu.getByte(Cpu.getHL()) & 0xf0;
+		Main.mmu.setByte(Cpu.getHL(), (l << 4) | (h >> 4));
+		Cpu.checkZero8bit(Main.mmu.getByte(Cpu.getHL()));
 		Cpu.cycles += 16;
 	}
 	
@@ -3799,17 +3797,17 @@ public class InstructionSet {
 	public static void SRL_HL() {
 		Cpu.resetFlagN();
 		Cpu.resetFlagH();
-		int res = mem.getByte(Cpu.getHL()) >> 1; // Rotate to the right
+		int res = Main.mmu.getByte(Cpu.getHL()) >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((mem.getByte(Cpu.getHL()) & 0x01) == 0x01) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x01) == 0x01) {
 			Cpu.setFlagC();
 		} else {
 			Cpu.resetFlagC();
 		}
 		
 		Cpu.checkZero8bit(res);
-		mem.setByte(Cpu.getHL(), res & 0xff);
+		Main.mmu.setByte(Cpu.getHL(), res & 0xff);
 		Cpu.cycles += 16;
 	}
 	
@@ -3921,7 +3919,7 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_0_HL() {
-		if ((mem.getByte(Cpu.getHL()) & 0x01) == 0x01) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x01) == 0x01) {
 			Cpu.resetFlagZ();
 		} else {
 			Cpu.setFlagZ();
@@ -4033,7 +4031,7 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_1_HL() {
-		if ((mem.getByte(Cpu.getHL()) & 0x02) == 0x02) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x02) == 0x02) {
 			Cpu.resetFlagZ();
 		} else {
 			Cpu.setFlagZ();
@@ -4145,7 +4143,7 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_2_HL() {
-		if ((mem.getByte(Cpu.getHL()) & 0x04) == 0x04) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x04) == 0x04) {
 			Cpu.resetFlagZ();
 		} else {
 			Cpu.setFlagZ();
@@ -4257,7 +4255,7 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_3_HL() {
-		if ((mem.getByte(Cpu.getHL()) & 0x08) == 0x08) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x08) == 0x08) {
 			Cpu.resetFlagZ();
 		} else {
 			Cpu.setFlagZ();
@@ -4369,7 +4367,7 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_4_HL() {
-		if ((mem.getByte(Cpu.getHL()) & 0x10) == 0x10) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x10) == 0x10) {
 			Cpu.resetFlagZ();
 		} else {
 			Cpu.setFlagZ();
@@ -4481,7 +4479,7 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_5_HL() {
-		if ((mem.getByte(Cpu.getHL()) & 0x20) == 0x20) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x20) == 0x20) {
 			Cpu.resetFlagZ();
 		} else {
 			Cpu.setFlagZ();
@@ -4593,7 +4591,7 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_6_HL() {
-		if ((mem.getByte(Cpu.getHL()) & 0x40) == 0x40) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x40) == 0x40) {
 			Cpu.resetFlagZ();
 		} else {
 			Cpu.setFlagZ();
@@ -4705,7 +4703,7 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_7_HL() {
-		if ((mem.getByte(Cpu.getHL()) & 0x80) == 0x80) {
+		if ((Main.mmu.getByte(Cpu.getHL()) & 0x80) == 0x80) {
 			Cpu.resetFlagZ();
 		} else {
 			Cpu.setFlagZ();
@@ -4781,7 +4779,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_0_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) & 0xfe);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) & 0xfe);
 		Cpu.cycles += 16;
 	}
 	
@@ -4845,7 +4843,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_1_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) & 0xfd);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) & 0xfd);
 		Cpu.cycles += 16;
 	}
 	
@@ -4909,7 +4907,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_2_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) & 0xfb);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) & 0xfb);
 		Cpu.cycles += 16;
 	}
 	
@@ -4973,7 +4971,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_3_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) & 0xf7);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) & 0xf7);
 		Cpu.cycles += 16;
 	}
 	
@@ -5037,7 +5035,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_4_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) & 0xef);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) & 0xef);
 		Cpu.cycles += 16;
 	}
 	
@@ -5101,7 +5099,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_5_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) & 0xdf);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) & 0xdf);
 		Cpu.cycles += 16;
 	}
 	
@@ -5165,7 +5163,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_6_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) & 0xbf);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) & 0xbf);
 		Cpu.cycles += 16;
 	}
 	
@@ -5229,7 +5227,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_7_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) & 0x7f);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) & 0x7f);
 		Cpu.cycles += 16;
 	}
 
@@ -5293,7 +5291,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_0_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | 0x01);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | 0x01);
 		Cpu.cycles += 16;
 	}
 	
@@ -5357,7 +5355,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_1_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | 0x02);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | 0x02);
 		Cpu.cycles += 16;
 	}
 	
@@ -5421,7 +5419,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_2_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | 0x04);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | 0x04);
 		Cpu.cycles += 16;
 	}
 	
@@ -5485,7 +5483,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_3_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | 0x08);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | 0x08);
 		Cpu.cycles += 16;
 	}
 	
@@ -5549,7 +5547,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_4_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | 0x10);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | 0x10);
 		Cpu.cycles += 16;
 	}
 
@@ -5613,7 +5611,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_5_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | 0x20);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | 0x20);
 		Cpu.cycles += 16;
 	}
 	
@@ -5677,7 +5675,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_6_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | 0x40);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | 0x40);
 		Cpu.cycles += 16;
 	}
 	
@@ -5741,7 +5739,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_7_HL() {
-		mem.setByte(Cpu.getHL(), mem.getByte(Cpu.getHL()) | 0x80);
+		Main.mmu.setByte(Cpu.getHL(), Main.mmu.getByte(Cpu.getHL()) | 0x80);
 		Cpu.cycles += 16;
 	}
 	

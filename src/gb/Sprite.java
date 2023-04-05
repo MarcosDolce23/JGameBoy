@@ -1,4 +1,4 @@
-package gba;
+package gb;
 
 public class Sprite {
 

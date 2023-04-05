@@ -1,4 +1,4 @@
-package gba;
+package gb;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -9,29 +9,32 @@ import java.util.Collections;
 
 import javax.swing.JPanel;
 
-public class Ppu extends JPanel {
+public class PixelProcessingUnit extends JPanel {
 	
-	public static Ppu instance;
+  /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-  Memory mem = Memory.getInstance();
+	Color[] pallete = {
+			Color.WHITE,
+			Color.LIGHT_GRAY,
+			Color.GRAY,
+			Color.BLACK
+	};
 
-  Color[] pallete = {
-    Color.WHITE,
-    Color.LIGHT_GRAY,
-    Color.GRAY,
-    Color.BLACK
-  };
+	Sprite[] spritePool = new Sprite[40]; // An object pool with 40 blank sprites
 
   // Palletes
-  private int getPalShade(int index) {
-    if (index == 0)
-      return mem.getByte(0xff47) & 0x03;
-    if (index == 1)
-      return (mem.getByte(0xff47) & 0x0c) >> 2;
-    if (index == 2)
-      return (mem.getByte(0xff47) & 0x30) >> 4;
-    return (mem.getByte(0xff47) & 0xc0) >> 6;
-  }
+	private int getPalShade(int index) {
+		if (index == 0)
+			return Main.mmu.getByte(0xff47) & 0x03;
+		if (index == 1)
+			return (Main.mmu.getByte(0xff47) & 0x0c) >> 2;
+		if (index == 2)
+			return (Main.mmu.getByte(0xff47) & 0x30) >> 4;
+		return (Main.mmu.getByte(0xff47) & 0xc0) >> 6;
+	}
 
   int[][] objshades = {
     {
@@ -83,12 +86,12 @@ public class Ppu extends JPanel {
 
 //  int wx = 0;
   private int wx() {
-	  return (mem.getByte(0xff4b) - 7);
+	  return (Main.mmu.getByte(0xff4b) - 7);
   }
   
 //  int wy = 0;
   private int wy() {
-	  return mem.getByte(0xff4a);
+	  return Main.mmu.getByte(0xff4a);
   }
   
   // BG scroll positions
@@ -96,17 +99,17 @@ public class Ppu extends JPanel {
   //    int scrolly = 0;
 
   private int scrollY() {
-    return mem.getByte(0xff42);
+    return Main.mmu.getByte(0xff42);
   }
 
   private int scrollX() {
-    return mem.getByte(0xff43);
+    return Main.mmu.getByte(0xff43);
   }
 
   int sub_ly = 0; // Used to decide which row of tile to draw
 
   private int lyc() {
-	  return mem.getByte(0xff45);
+	  return Main.mmu.getByte(0xff45);
   }
 
   private int putPixel(int x, int y, int color) {
@@ -122,12 +125,12 @@ public class Ppu extends JPanel {
   // Flag setting methods
   private void setCoincidence() {
 	  // Set bit 2
-	  mem.ram[0xff41] |= 0x4;
+	  Main.mmu.ram[0xff41] |= 0x4;
   }
 
   private void clearCoincidence() {
 	  // Clear bit 2
-	  mem.ram[0xff41] &= ~0x4;
+	  Main.mmu.ram[0xff41] &= ~0x4;
   }
 
   //    FF40 — LCDC: LCD control
@@ -144,35 +147,35 @@ public class Ppu extends JPanel {
   //    0	BG and Window enable/priority	0=Off, 1=On
 
   private boolean bgEnable() {
-    return ((mem.getByte(0xff40) & 0x01) == 0x01);
+    return ((Main.mmu.getByte(0xff40) & 0x01) == 0x01);
   }
 
   private boolean spritesEnable() {
-    return ((mem.getByte(0xff40) & 0x02) == 0x02);
+    return ((Main.mmu.getByte(0xff40) & 0x02) == 0x02);
   }
 
   private boolean tallSprites() {
-    return ((mem.getByte(0xff40) & 0x04) == 0x04);
+    return ((Main.mmu.getByte(0xff40) & 0x04) == 0x04);
   }
 
   private boolean bgTileMap() {
-    return ((mem.getByte(0xff40) & 0x08) == 0x08);
+    return ((Main.mmu.getByte(0xff40) & 0x08) == 0x08);
   }
 
   private boolean signedAddressing() {
-    return ((mem.getByte(0xff40) & 0x10) == 0x10);
+    return ((Main.mmu.getByte(0xff40) & 0x10) == 0x10);
   }
 
   private boolean windowEnable() {
-    return ((mem.getByte(0xff40) & 0x20) == 0x20);
+    return ((Main.mmu.getByte(0xff40) & 0x20) == 0x20);
   }
 
   private boolean windowTileMap() {
-    return ((mem.getByte(0xff40) & 0x40) == 0x040);
+    return ((Main.mmu.getByte(0xff40) & 0x40) == 0x040);
   }
 
-  private boolean lcdEnable() {
-    return ((mem.getByte(0xff40) & 0x80) == 0x80);
+  public boolean lcdEnable() {
+    return ((Main.mmu.getByte(0xff40) & 0x80) == 0x80);
   }
 
   //    FF41 — STAT: LCD status
@@ -193,121 +196,57 @@ public class Ppu extends JPanel {
   //    Bits 3-6 select which sources are used for the STAT interrupt.
 
   private boolean coinIrqOn() {
-    return ((mem.getByte(0xff41) & 0x40) == 0x40);
+    return ((Main.mmu.getByte(0xff41) & 0x40) == 0x40);
   }
 
   private boolean mode2IrqOn() {
-    return ((mem.getByte(0xff41) & 0x20) == 0x20);
+    return ((Main.mmu.getByte(0xff41) & 0x20) == 0x20);
   }
 
   private boolean mode1IrqOn() {
-    return ((mem.getByte(0xff41) & 0x10) == 0x10);
+    return ((Main.mmu.getByte(0xff41) & 0x10) == 0x10);
   }
 
   private boolean mode0IrqOn() {
-    return ((mem.getByte(0xff41) & 0x08) == 0x08);
+    return ((Main.mmu.getByte(0xff41) & 0x08) == 0x08);
   }
 
   private boolean coincidence() {
-    return ((mem.getByte(0xff41) & 0x04) == 0x04);
+    return ((Main.mmu.getByte(0xff41) & 0x04) == 0x04);
   }
 
   private int mode() {
-    return (mem.getByte(0xff41) & 0x03);
+    return (Main.mmu.getByte(0xff41) & 0x03);
+  }
+  
+  // LCD enable methods
+  public void turnLcdOff() {
+      ppuclocks = 0;
+      statsignal = false;
+
+      writeMode(0); // When LCD disabled, stat mode is 0
+
+//      clearImg (); // Clear screen on frontend
+      img.flush();
+      renderImage();
   }
 
-  public boolean handleScan(int cycled) {
-	  
-    // Do nothing if LCD is off
-    if (!lcdEnable())
-      return true;
-
-    ppuclocks += cycled;
-
-    switch (mode()) {
-
-      // ---- OAM MODE 2 ---- //
-    case 2:
-      if (ppuclocks >= oamlength) {
-        // Mode 2 is over ...
-        writeMode(3);
-        searchOam();
-
-        ppuclocks -= oamlength;
-      }
-//      break;
-      // ---- DRAW MODE 3 ---- //
-    case 3:
-      // ... we're just imaginary plotting pixels
-      if (ppuclocks >= drawlength) {
-        // Mode 3 is over ...
-        writeMode(0);
-        renderScan(); // Finally render on hblank :D
-
-        ppuclocks -= drawlength;
-      }
-//      break;
-      // ---- H-BLANK MODE 0 ---- //
-    case 0:
-      // We're relaxin here ...
-      if (ppuclocks >= hblanklength) {
-        // Advance LY
-        ly++;
-
-        checkCoincidence();
-        mem.ram[0xff44] = (byte) this.ly;
-
-        // When entering vblank period ...
-        if (ly == gbheight) {
-//          int bt = mem.getByte(0xff0f);
-//          mem.setByte(0xff0f, bt | 0x01); // Request vblank irq !
-        	mem.ram[0xff0f] |= 0b00000001; // Set bit 0
-        	writeMode(1);
-
-          renderImage(); // Draw picture ! (in v-sync uwu)
-        } else
-          writeMode(2); // Reset
-
-        ppuclocks -= hblanklength;
-      }
-//      break;
-      // ---- V-BLANK MODE 1 ---- //
-    case 1:
-      if (ppuclocks >= scanlinelength) {
-        // Advance LY
-        ly++;
-
-        // Check if out of vblank period ..
-        if (ly == 154) {
-          ly = 0;
-          wilc = 0;
-          winOnThisFrame = false;
-
-          checkCoincidence();
-
-          writeMode(2); // Reset
-        } else {
-          checkCoincidence();
-          updateStatSignal();
-        }
-
-        mem.ram[0xff44] = (byte) ly;
-
-        ppuclocks -= scanlinelength;
-      }
-//      break;
-    }
-
-    return true;
+  public void turnLcdOn() {
+      // Reset LY (and WILC) to 0
+      ly = 
+      wilc = 0;
+      winOnThisFrame = false;
+      // Don't forget to check for dos concedenes =)
+      checkCoincidence ();
+      
+      writeMode(2); // When LCD enabled again, mode 2
   }
-
+  
   private void writeMode(int mode) {
-    //        stat.mode = mode;
-    updateStatSignal();
-
-    // Write mode to bits 1 - 0
-    mem.ram[0xff41] &= 0b11111100; // Clear last 2 bits, ready for setting
-    mem.ram[0xff41] |= mode; // Write mode to last 2 bits
+	    // Write mode to bits 1 - 0
+	  Main.mmu.ram[0xff41] &= 0xfc; // Clear last 2 bits, ready for setting
+	  Main.mmu.ram[0xff41] |= mode; // Write mode to last 2 bits
+	  updateStatSignal();
   }
 
   // Update signal state
@@ -317,26 +256,23 @@ public class Ppu extends JPanel {
     statsignal = (coinIrqOn() && coincidence()) || (mode2IrqOn() && mode() == 2) || (mode0IrqOn() && mode() == 0) || (mode1IrqOn() && mode() == 1);
 
     if (!presignal && statsignal) {
-      int res = mem.getByte(0xff0f) | 0x02; // Set bit 1
-      mem.setByte(0xff0f, res);
+      int res = Main.mmu.getByte(0xff0f) | 0x02; // Set bit 1
+      Main.mmu.setByte(0xff0f, res);
     }
   }
 
   private void searchOam() {
-	  Sprite[] spritePool = new Sprite[40]; // An object pool with 40 blank sprites
-	  
-	  for (var i = 0; i < spritePool.length; i++)
-		  spritePool[i] = new Sprite();
-	  
 	  acceptedSprites.clear(); // Clear buffer
     
-    // Load the spritePool with Sprite attributes
+	  for (var i = 0; i < spritePool.length; i++)
+		  spritePool[i] = new Sprite();
+    // Load the spritePool with Sprite attributes from the oam
 	  for (int i = 0xfe00; i < 0xfea0; i += 4 ) {
 		  Sprite bs = new Sprite();
-		  bs.setY(mem.getByte(i));
-		  bs.setX(mem.getByte(i + 1));
-		  bs.setTile(mem.getByte(i + 2));
-		  bs.setFlags(mem.getByte(i + 3));
+		  bs.setY(Main.mmu.getByte(i));
+		  bs.setX(Main.mmu.getByte(i + 1));
+		  bs.setTile(Main.mmu.getByte(i + 2));
+		  bs.setFlags(Main.mmu.getByte(i + 3));
 		  spritePool[(i - 0xfe00) / 4] = bs;
     }
     
@@ -375,17 +311,105 @@ public class Ppu extends JPanel {
     else
       clearCoincidence();
   }
+  
+  public boolean handleScan(int cycled) {
+	  
+	    // Do nothing if LCD is off
+	    if (!lcdEnable())
+	      return true;
+	    
+	    ppuclocks += cycled;
 
+	    switch (mode()) {
+
+	      // ---- OAM MODE 2 ---- //
+	    case 2:
+//	    	System.out.println("Mode 2");
+	      if (ppuclocks >= oamlength) {
+	        // Mode 2 is over ...
+	        writeMode(3);
+	        searchOam();
+
+	        ppuclocks -= oamlength;
+	      }
+//	      break;
+	      // ---- DRAW MODE 3 ---- //
+	    case 3:
+//	    	System.out.println("Mode 3");
+	      // ... we're just imaginary plotting pixels
+	      if (ppuclocks >= drawlength) {
+	        // Mode 3 is over ...
+	        writeMode(0);
+	        renderScan(); // Finally render on hblank :D
+
+	        ppuclocks -= drawlength;
+	      }
+//	      break;
+	      // ---- H-BLANK MODE 0 ---- //
+	    case 0:
+//	    	System.out.println("Mode 0");
+	      // We're relaxin here ...
+	      if (ppuclocks >= hblanklength) {
+	        // Advance LY
+	        ly++;
+
+	        checkCoincidence();
+	        Main.mmu.ram[0xff44] = (byte) this.ly;
+
+	        // When entering vblank period ...
+	        if (ly == gbheight) {
+//	          int bt = Main.mmu.getByte(0xff0f);
+//	          Main.mmu.setByte(0xff0f, bt | 0x01); // Request vblank irq !
+	        	Main.mmu.ram[0xff0f] |= 0b00000001; // Set bit 0
+	        	writeMode(1);
+
+	          renderImage(); // Draw picture ! (in v-sync uwu)
+	        } else
+	          writeMode(2); // Reset
+
+	        ppuclocks -= hblanklength;
+	      }
+//	      break;
+	      // ---- V-BLANK MODE 1 ---- //
+	    case 1:
+//	    	System.out.println("Mode 1");
+	      if (ppuclocks >= scanlinelength) {
+	        // Advance LY
+	        ly++;
+
+	        // Check if out of vblank period ..
+	        if (ly == 154) {
+	          ly = 0;
+	          wilc = 0;
+	          winOnThisFrame = false;
+
+	          checkCoincidence();
+	          writeMode(2); // Reset
+	        } else {
+	          checkCoincidence();
+	          updateStatSignal();
+	        }
+
+	        Main.mmu.ram[0xff44] = (byte) ly;
+
+	        ppuclocks -= scanlinelength;
+	      }
+//	      break;
+	    }
+
+	    return true;
+	  }
+  
   public void renderScan() {
-
+	  
     // Ready up some stuff
     lx = 0;
 
     int x = scrollX();
     int y = (ly + scrollY()) & 0xff;
     
-//    this.wy = mem.getByte(0xff4a);
-//    this.wx = mem.getByte(0xff4b) - 7; // 7px of offset
+//    this.wy = Main.mmu.getByte(0xff4a);
+//    this.wx = Main.mmu.getByte(0xff4b) - 7; // 7px of offset
    
     int wx = 0;
 
@@ -401,7 +425,7 @@ public class Ppu extends JPanel {
     int mapindy = bgmapbase + (y >> 3) * 32; // (y / 8 * 32) Beginning of background tile map
     int winindy = winmapbase + (wilc >> 3) * 32;
     
-    winOnThisFrame = (ly != 0) ? true : false;
+    winOnThisFrame = (ly == wy());
     boolean inWindowRn = windowEnable() && winOnThisFrame && (wx() < gbwidth);
 
     while (lx < gbwidth) {
@@ -409,19 +433,19 @@ public class Ppu extends JPanel {
       if (inWindowRn && (lx >= wx())) {
 
         int mapind = winindy + (wx >> 3); // (x / 8) Background tile map
-        int patind = mem.getByte(mapind); // Get tile index at map
+        int patind = Main.mmu.getByte(mapind); // Get tile index at map
 
         // Calculate tile data address
 
         if (!signedAddressing())
-//          patind = mem.getSignedByte(mapind);
+//          patind = Main.mmu.getByte(mapind);
         	patind = patind << 24 >> 24; 
 
         int addr = tiledatabase + (patind << 4) + (sub_wy); // (tile index * 16) Each tile is 16 bytes, (sub_ly * 2) Each line of a tile is 2 bytes
 
         // Get tile line data
-        int lobyte = mem.getByte(addr++);
-        int hibyte = mem.getByte(addr);
+        int lobyte = Main.mmu.getByte(addr++);
+        int hibyte = Main.mmu.getByte(addr);
 
         // Mix and draw current tile line pixel
         int bitmask = 1 << ((wx ^ 7) & 7);
@@ -440,19 +464,19 @@ public class Ppu extends JPanel {
       else if (bgEnable()) {
 
         int mapind = mapindy + (x >> 3); // (x / 8) Background tile map
-        int patind = mem.getByte(mapind); // Get tile index at map
+        int patind = Main.mmu.getByte(mapind); // Get tile index at map
 
         // Calculate tile data address
 
         if (!signedAddressing())
           patind = patind << 24 >> 24; // Complement tile index in 0x8800 mode
-//          patind = mem.getSignedByte(mapind);
+//          patind = Main.mmu.getSignedByte(mapind);
 
         int addr = tiledatabase + (patind << 4) + (sub_ly << 1); // (tile index * 16) Each tile is 16 bytes, (sub_ly * 2) Each line of a tile is 2 bytes
 
         // Get tile line data
-        int lobyte = mem.getByte(addr++);
-        int hibyte = mem.getByte(addr);
+        int lobyte = Main.mmu.getByte(addr++);
+        int hibyte = Main.mmu.getByte(addr);
 
         // Mix and draw current tile line pixel
         int bitmask = 1 << ((x ^ 7) & 7);
@@ -514,8 +538,8 @@ public class Ppu extends JPanel {
         int pxind_y = realY * gbwidth;
 
         // Get tile data
-        int lobyte = mem.getByte(addr++);
-        int hibyte = mem.getByte(addr);
+        int lobyte = Main.mmu.getByte(addr++);
+        int hibyte = Main.mmu.getByte(addr);
 
         // Mix and draw all 8 pixels
         for (int ii = 0; ii < 8; ii++) {
@@ -552,16 +576,12 @@ public class Ppu extends JPanel {
   public void paint(Graphics g) {
     setBackground(Color.BLACK);
     Graphics2D g2d = (Graphics2D) g;
-    //		g2d.scale(1.0, 1.0);
     g2d.drawImage(img, 0, 0, getWidth(), getHeight(), this);
   }
 
   public void renderImage() {
     repaint();
-  }
-  
-  public Ppu() {
-	  instance = this;
+    update(getGraphics());
   }
   
   //    public void paint(Graphics g) {  
@@ -589,8 +609,8 @@ public class Ppu extends JPanel {
 
   //	public void displayTile(Graphics g, int addr, int tileNum, int x, int y) {
   //	for (int tileY = 0; tileY < 16; tileY += 2) {
-  //		int b1 = mem.getByte(addr + (tileNum * 16) + tileY);
-  //		int b2 = mem.getByte(addr + (tileNum * 16) + tileY + 1);
+  //		int b1 = Main.mmu.getByte(addr + (tileNum * 16) + tileY);
+  //		int b2 = Main.mmu.getByte(addr + (tileNum * 16) + tileY + 1);
   //		
   //		for (int bit = 7; bit >= 0; bit--) {
   //			int hi = (b1 & (1 << bit)) >> (bit - 1);

@@ -1,4 +1,4 @@
-package gba;
+package gb;
 
 import java.awt.Color;
 import java.awt.Graphics;

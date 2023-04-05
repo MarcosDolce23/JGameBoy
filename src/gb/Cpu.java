@@ -1,13 +1,8 @@
-package gba;
+package gb;
 
-import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 public class Cpu {
-	
-	public static Memory mem;
-	
-	Ppu ppu;
 	
 	// CPU Timing
 	
@@ -215,35 +210,35 @@ public class Cpu {
 //	Bit 4: Joypad   Interrupt Enable  (INT $60)  (1=Enable)
 	
 	private boolean getIEVBlank() {
-		if ((mem.getByte(0xffff) & 0x01) == 0x01) {
+		if ((Main.mmu.getByte(0xffff) & 0x01) == 0x01) {
 			return true;
 		}
 		return false;
 	}
 	
 	private boolean getIELCDSTAT() {
-		if ((mem.getByte(0xffff) & 0x02) == 0x02) {
+		if ((Main.mmu.getByte(0xffff) & 0x02) == 0x02) {
 			return true;
 		}
 		return false;
 	}
 	
 	private boolean getIETimer() {
-		if ((mem.getByte(0xffff) & 0x04) == 0x04) {
+		if ((Main.mmu.getByte(0xffff) & 0x04) == 0x04) {
 			return true;
 		}
 		return false;
 	}
 	
 	private boolean getIESerial() {
-		if ((mem.getByte(0xffff) & 0x08) == 0x08) {
+		if ((Main.mmu.getByte(0xffff) & 0x08) == 0x08) {
 			return true;
 		}
 		return false;
 	}
 	
 	private boolean getIEJoypad() {
-		if ((mem.getByte(0xffff) & 0x10) == 0x10) {
+		if ((Main.mmu.getByte(0xffff) & 0x10) == 0x10) {
 			return true;
 		}
 		return false;
@@ -258,86 +253,83 @@ public class Cpu {
 //	Bit 4: Joypad   Interrupt Request (INT $60)  (1=Request)
 	
 	private boolean getIFVBlank() {
-		if ((mem.getByte(0xff0f) & 0x01) == 0x01) {
+		if ((Main.mmu.getByte(0xff0f) & 0x01) == 0x01) {
 			return true;
 		}
 		return false;
 	}
 	
 	private boolean getIFLCDSTAT() {
-		if ((mem.getByte(0xff0f) & 0x02) == 0x02) {
+		if ((Main.mmu.getByte(0xff0f) & 0x02) == 0x02) {
 			return true;
 		}
 		return false;
 	}
 	
 	private boolean getIFTimer() {
-		if ((mem.getByte(0xff0f) & 0x04) == 0x04) {
+		if ((Main.mmu.getByte(0xff0f) & 0x04) == 0x04) {
 			return true;
 		}
 		return false;
 	}
 	
 	private boolean getIFSerial() {
-		if ((mem.getByte(0xff0f) & 0x08) == 0x08) {
+		if ((Main.mmu.getByte(0xff0f) & 0x08) == 0x08) {
 			return true;
 		}
 		return false;
 	}
 	
 	private boolean getIFJoypad() {
-		if ((mem.getByte(0xff0f) & 0x10) == 0x10) {
+		if ((Main.mmu.getByte(0xff0f) & 0x10) == 0x10) {
 			return true;
 		}
 		return false;
 	}
 	
 	private void resetIFVBlank() {
-		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xfe);
+		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xfe);
 	}
 	
 	private void resetIFLCDSTAT() {
-		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xfd);
+		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xfd);
 	}
 	
 	private void resetIFTimer() {
-		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xfb);
+		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xfb);
 	}
 	
 	private void resetIFSerial() {
-		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xf7);
+		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xf7);
 	}
 	
 	private void resetIFJoypad() {
-		mem.setByte(0xff0f, mem.getByte(0xff0f) & 0xef);
+		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xef);
 	}
 	
 	public static int fetch() {
 		int pc = PC;
 		PC += 1;
 		
-		return mem.getByte(pc);
+		return Main.mmu.getByte(pc);
 	}
 	
 	public static int fetchSigned() {
 		int pc = PC;
 		PC += 1;
-		return mem.getSignedByte(pc);
+		return Main.mmu.getSignedByte(pc);
 	}
 	
 	public static int fetchSP() {
 		int sp = SP;
 		SP += 1;
-		return mem.getByte(sp);
+		return Main.mmu.getByte(sp);
 		
 	}
 	
 	public static int cycles = 0;
 	
-	public Cpu(Ppu ppu) {
-		
-		this.ppu = ppu; 
-		mem = Memory.getInstance();
+	public Cpu() {
 		
 		A = 0x01;
 		F = 0xb0;
@@ -365,13 +357,14 @@ public class Cpu {
 		while (true) {
 			Long msBefore = System.currentTimeMillis();
 			
+//			Main.joypad.CheckJoypad();
 			extractCycles = runFrame(extractCycles);
 			
 			Long msAfter = System.currentTimeMillis();
 			Long msSpent = msBefore - msAfter;
 			
 			// No estoy seguro de si esto está funcionando
-//			TimeUnit.MILLISECONDS.sleep(interval - msSpent);
+			TimeUnit.MILLISECONDS.sleep(interval - msSpent);
 		}
 	}
 	
@@ -390,25 +383,25 @@ public class Cpu {
 		cycles = 0;
 		if (haltbugAtm) {
 			haltbugAtm = false;
-			opcode = mem.getByte(PC);
+			opcode = Main.mmu.getByte(PC);
 		} else
 			opcode = fetch();
 		decode(opcode);
 		handleInterrupts();
 		
 		handleTimer(cycles);
-		ppu.handleScan(cycles);
-		test();
+		Main.ppu.handleScan(cycles);
+//		test();
 		
 		return cycles;
 	}
 	
 	private void test() {
 //	    blarggs test - serial output
-		if (mem.getByte(0xff02) == 0x81) {
-		    char c = (char) mem.getByte(0xff01);
+		if (Main.mmu.getByte(0xff02) == 0x81) {
+		    char c = (char) Main.mmu.getByte(0xff01);
 		    System.out.print(c);
-		    mem.setByte(0xff02, 0x00);
+		    Main.mmu.setByte(0xff02, 0x00);
 		}
 	}
 	
@@ -418,9 +411,9 @@ public class Cpu {
 			//  v-blank interrupt
 			if (getIEVBlank() & getIFVBlank()) {
 				SP -= 1;
-				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
 				PC = 0x40;
 				InstructionSet.DI();
 				resetIFVBlank();
@@ -432,9 +425,9 @@ public class Cpu {
 			// LCD STAT interrupt 
 			if (getIELCDSTAT() & getIFLCDSTAT()) {
 				SP -= 1;
-				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
 				PC = 0x48;
 				InstructionSet.DI();
 				resetIFLCDSTAT();
@@ -446,9 +439,9 @@ public class Cpu {
 			// Timer interrupt
 			if (getIETimer() & getIFTimer()) {
 				SP -= 1;
-				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
 				PC = 0x50;
 				InstructionSet.DI();
 				resetIFTimer();
@@ -460,9 +453,9 @@ public class Cpu {
 			// Serial interrupt
 			if (getIESerial() & getIFSerial()) {
 				SP -= 1;
-				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
 				PC = 0x58;
 				InstructionSet.DI();
 				resetIFSerial();
@@ -474,9 +467,9 @@ public class Cpu {
 			// Joypad interrupt
 			if (getIEJoypad() & getIFJoypad()) {
 				SP -= 1;
-				mem.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				mem.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
 				PC = 0x60;
 				InstructionSet.DI();
 				resetIFJoypad();
@@ -495,20 +488,20 @@ public class Cpu {
 		
 		if (divClocksum >= 256) {
 			divClocksum -= 256;
-			int res = (mem.getByte(0xff04) + 1) & 0xff;
-			mem.setByte(0xff04, res);
+			int res = (Main.mmu.getByte(0xff04) + 1) & 0xff;
+			Main.mmu.setByte(0xff04, res);
 		}
 
 //		check if timer is on
-		if ((mem.getByte(0xff07) & 0x04) == 0x04) {
+		if ((Main.mmu.getByte(0xff07) & 0x04) == 0x04) {
 			
 //			set frequency
 			int freq = 4096; //  Hz
-			if ((mem.getByte(0xff07) & 0x03) == 0x01)     //  mask last 2 bits
+			if ((Main.mmu.getByte(0xff07) & 0x03) == 0x01)     //  mask last 2 bits
 				freq = 262144;
-			else if ((mem.getByte(0xff07) & 0x03) == 0x02)    //  mask last 2 bits
+			else if ((Main.mmu.getByte(0xff07) & 0x03) == 0x02)    //  mask last 2 bits
 				freq = 65536;
-			else if ((mem.getByte(0xff07) & 0x03) == 0x03)    //  mask last 2 bits
+			else if ((Main.mmu.getByte(0xff07) & 0x03) == 0x03)    //  mask last 2 bits
 				freq = 16384;
 			
 //			increase helper counter
@@ -518,14 +511,14 @@ public class Cpu {
 			while (timerClocksum >= (4194304 / freq)) {
 				
 //				increase TIMA
-				int res = (mem.getByte(0xff05) + 1) & 0xff;
-				mem.setByte(0xff05, res);
+				int res = (Main.mmu.getByte(0xff05) + 1) & 0xff;
+				Main.mmu.setByte(0xff05, res);
 //				check TIMA for overflow
-				if (mem.getByte(0xff05) == 0x00) {
+				if (Main.mmu.getByte(0xff05) == 0x00) {
 //					set timer interrupt request
-					mem.setByte(0xff0f, mem.getByte(0xff0f) | 0x04);
+					Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) | 0x04);
 //					reset timer to timer modulo
-					mem.setByte(0xff05, mem.getByte(0xff06));
+					Main.mmu.setByte(0xff05, Main.mmu.getByte(0xff06));
 				}
 		        
 				timerClocksum -= (4194304 / freq);
