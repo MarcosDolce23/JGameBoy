@@ -1,5 +1,7 @@
 package gb;
 
+import gb.utils.*;
+
 public class Joypad {
 	
 //	FF00 — P1/JOYP: Joypad
@@ -56,11 +58,11 @@ public class Joypad {
 		boolean previouslyUnset = false;
 		
 		// if setting from 1 to 0 we may have to request an interupt
-		   if (testBit(joypadState, key) == false)
+		   if (BitOperations.testBit(joypadState, key) == false)
 		     previouslyUnset = true ;
 
 		   // remember if a keypressed its bit is 0 not 1
-		   joypadState = bitReset(joypadState, key);
+		   joypadState = BitOperations.bitReset(joypadState, key);
 
 		   // button pressed
 		   boolean button = true;
@@ -76,11 +78,11 @@ public class Joypad {
 
 		   // only request interupt if the button just pressed is
 		   // the style of button the game is interested in
-		   if (button && !testBit(keyReq, 5))
+		   if (button && !BitOperations.testBit(keyReq, 5))
 		     requestInterupt = true;
 
 		   // same as above but for directional button
-		   else if (!button && !testBit(keyReq, 4))
+		   else if (!button && !BitOperations.testBit(keyReq, 4))
 		     requestInterupt = true;
 
 		   // request interupt
@@ -94,13 +96,13 @@ public class Joypad {
 	   res ^= 0xff ;
 
 	   // are we interested in the standard buttons?
-	   if (!testBit(res, 4))
+	   if (!BitOperations.testBit(res, 4))
 	   {
 	     byte topJoypad = (byte) (joypadState >> 4);
 	     topJoypad |= 0xF0 ; // turn the top 4 bits on
 	     res &= topJoypad ; // show what buttons are pressed
 	   }
-	   else if (!testBit(res,5))//directional buttons
+	   else if (!BitOperations.testBit(res,5))//directional buttons
 	   {
 	     byte bottomJoypad = (byte) (joypadState & 0xf);
 	     bottomJoypad |= 0xF0 ;
@@ -144,18 +146,7 @@ public class Joypad {
 			key = 7;
 		break;
 	}
-		joypadState = bitSet(joypadState, key) ;
+		joypadState = BitOperations.bitSet(joypadState, key) ;
 	}
 	
-	private boolean testBit(byte b, int bit) {
-		return ((b & (1 << bit )) == (1 << bit));
-	}
-	
-	private byte bitReset(byte b, int bit) {
-		return (byte) (b & ~(1 << bit));
-	}
-	
-	private byte bitSet(byte b, int bit) {
-		return (byte) (b | (1 << bit));
-	}
 }

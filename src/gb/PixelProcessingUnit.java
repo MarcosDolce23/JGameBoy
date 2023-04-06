@@ -15,15 +15,48 @@ public class PixelProcessingUnit extends JPanel {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	  //    Screen Elements
 
-	Color[] pallete = {
-			Color.WHITE,
-			Color.LIGHT_GRAY,
-			Color.GRAY,
-			Color.BLACK
-	};
+	  public static int gbwidth = 160; // 160
+	  public static int gbheight = 144; // 144
 
-	Sprite[] spritePool = new Sprite[40]; // An object pool with 40 blank sprites
+	  BufferedImage img = new BufferedImage(gbwidth, gbheight, BufferedImage.TYPE_4BYTE_ABGR);
+
+	  byte[] pxMap = new byte[gbwidth * gbheight]; // Used to decide what pixel data was drawn
+
+	  long interval = (long)(1000 / 59.7); // GB refresh rate
+
+	  // =============== //   Scanlines //
+
+	  int ppuclocks = 0;
+
+	  boolean statsignal = false;
+
+	  // Mode lengths in t-cycles
+	  int oamlength = 80;
+	  int drawlength = 172;
+	  int hblanklength = 204;
+	  int scanlinelength = 456;
+	  
+	  ArrayList < Sprite > acceptedSprites = new ArrayList < Sprite > (); // The good boys which fit draw conditions go here :)
+	  Sprite[] spritePool = new Sprite[40]; // An object pool with 40 blank sprites
+
+	  int maxSpritesScan = 10;
+
+	  // Scanline positions
+	  int lx = 0;
+	  int ly = 0;
+	  
+	  int wilc = 0; // Window internal line counter
+	  boolean winOnThisFrame = false;
+
+	  Color[] pallete = {
+				Color.WHITE,
+				Color.LIGHT_GRAY,
+				Color.GRAY,
+				Color.BLACK
+		};
 
   // Palletes
 	private int getPalShade(int index) {
@@ -35,68 +68,38 @@ public class PixelProcessingUnit extends JPanel {
 			return (Main.mmu.getByte(0xff47) & 0x30) >> 4;
 		return (Main.mmu.getByte(0xff47) & 0xc0) >> 6;
 	}
+	
+	private int getObjShades(int pallete, int nib) {
+		if (pallete == 0 ) {
+			if (nib == 0)
+				return Main.mmu.getByte(0xff48) & 0x03;
+			if (nib == 1)
+				return (Main.mmu.getByte(0xff48) & 0x0c) >> 2;
+			if (nib == 2)
+				return (Main.mmu.getByte(0xff48) & 0x30) >> 4;
+			return (Main.mmu.getByte(0xff48) & 0xc0) >> 6;
+		}
+		
+		if (pallete == 1) {
+			if (nib == 0)
+				return Main.mmu.getByte(0xff49) & 0x03;
+			if (nib == 1)
+				return (Main.mmu.getByte(0xff49) & 0x0c) >> 2;
+			if (nib == 2)
+				return (Main.mmu.getByte(0xff49) & 0x30) >> 4;
+			return (Main.mmu.getByte(0xff49) & 0xc0) >> 6;
+		}
+		
+		return 0;
+	}
 
-  int[][] objshades = {
-    {
-      3,
-      3,
-      3
-    },
-    {
-      3,
-      3,
-      3
-    }
-  };
-
-  //    Screen Elements
-
-  public static int gbwidth = 160; // 160
-  public static int gbheight = 144; // 144
-
-  BufferedImage img = new BufferedImage(gbwidth, gbheight, BufferedImage.TYPE_4BYTE_ABGR);
-
-  byte[] pxMap = new byte[gbwidth * gbheight]; // Used to decide what pixel data was drawn
-
-  long interval = (long)(1000 / 59.7); // GB refresh rate
-
-  // =============== //   Scanlines //
-
-  int ppuclocks = 0;
-
-  boolean statsignal = false;
-
-  // Mode lengths in t-cycles
-  int oamlength = 80;
-  int drawlength = 172;
-  int hblanklength = 204;
-  int scanlinelength = 456;
-
-  ArrayList < Sprite > acceptedSprites = new ArrayList < Sprite > (); // The good boys which fit draw conditions go here :)
-
-  int maxSpritesScan = 10;
-
-  // Scanline positions
-  int lx = 0;
-  int ly = 0;
-  
-  int wilc = 0; // Window internal line counter
-  boolean winOnThisFrame = false;
-
-
-//  int wx = 0;
   private int wx() {
 	  return (Main.mmu.getByte(0xff4b) - 7);
   }
   
-//  int wy = 0;
   private int wy() {
 	  return Main.mmu.getByte(0xff4a);
   }
-  
-  // BG scroll positions
-  //    int scrollx = 0;
-  //    int scrolly = 0;
 
   private int scrollY() {
     return Main.mmu.getByte(0xff42);
@@ -114,7 +117,6 @@ public class PixelProcessingUnit extends JPanel {
 
   private int putPixel(int x, int y, int color) {
     int ind = (y * gbwidth + x);
-    //        int pind = ind * 4;
 
     Color pal = pallete[color];
     img.setRGB(x, y, pal.getRGB());
@@ -237,7 +239,7 @@ public class PixelProcessingUnit extends JPanel {
       wilc = 0;
       winOnThisFrame = false;
       // Don't forget to check for dos concedenes =)
-      checkCoincidence ();
+      checkCoincidence();
       
       writeMode(2); // When LCD enabled again, mode 2
   }
@@ -266,7 +268,8 @@ public class PixelProcessingUnit extends JPanel {
     
 	  for (var i = 0; i < spritePool.length; i++)
 		  spritePool[i] = new Sprite();
-    // Load the spritePool with Sprite attributes from the oam
+    
+	  // Load the spritePool with Sprite attributes from the oam
 	  for (int i = 0xfe00; i < 0xfea0; i += 4 ) {
 		  Sprite bs = new Sprite();
 		  bs.setY(Main.mmu.getByte(i));
@@ -324,7 +327,6 @@ public class PixelProcessingUnit extends JPanel {
 
 	      // ---- OAM MODE 2 ---- //
 	    case 2:
-//	    	System.out.println("Mode 2");
 	      if (ppuclocks >= oamlength) {
 	        // Mode 2 is over ...
 	        writeMode(3);
@@ -332,10 +334,9 @@ public class PixelProcessingUnit extends JPanel {
 
 	        ppuclocks -= oamlength;
 	      }
-//	      break;
+	      break;
 	      // ---- DRAW MODE 3 ---- //
 	    case 3:
-//	    	System.out.println("Mode 3");
 	      // ... we're just imaginary plotting pixels
 	      if (ppuclocks >= drawlength) {
 	        // Mode 3 is over ...
@@ -344,10 +345,9 @@ public class PixelProcessingUnit extends JPanel {
 
 	        ppuclocks -= drawlength;
 	      }
-//	      break;
+	      break;
 	      // ---- H-BLANK MODE 0 ---- //
 	    case 0:
-//	    	System.out.println("Mode 0");
 	      // We're relaxin here ...
 	      if (ppuclocks >= hblanklength) {
 	        // Advance LY
@@ -369,10 +369,9 @@ public class PixelProcessingUnit extends JPanel {
 
 	        ppuclocks -= hblanklength;
 	      }
-//	      break;
+	      break;
 	      // ---- V-BLANK MODE 1 ---- //
 	    case 1:
-//	    	System.out.println("Mode 1");
 	      if (ppuclocks >= scanlinelength) {
 	        // Advance LY
 	        ly++;
@@ -394,7 +393,7 @@ public class PixelProcessingUnit extends JPanel {
 
 	        ppuclocks -= scanlinelength;
 	      }
-//	      break;
+	      break;
 	    }
 
 	    return true;
@@ -560,8 +559,7 @@ public class PixelProcessingUnit extends JPanel {
             continue;
 
           // Mix and draw !
-          int px = nib;
-//          System.out.println("Put: 2");
+          int px = getObjShades(sprite.pallete, nib);
           putPixel(sx, realY, px);
 
         }

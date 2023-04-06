@@ -5,7 +5,7 @@ import java.io.IOException;
 public class Main {
 	
 	public static int fps = 60;
-	public static Cpu cpu = new Cpu();
+	public static CentralProcessingUnit cpu = new CentralProcessingUnit();
 	public static MemoryManagementUnit mmu = new MemoryManagementUnit();
 	public static PixelProcessingUnit ppu = new PixelProcessingUnit();
 	public static Cartridge cartridge = new Cartridge();
@@ -17,9 +17,9 @@ public class Main {
 		
 		new UserInterface();
 		
-		while (waitingLoop) {
-			System.out.println("Waiting ROM...");
-		}
+//		while (waitingLoop) {
+//			System.out.println("Waiting ROM...");
+//		}
 		
 		cpu.loopExe(0);
 	}

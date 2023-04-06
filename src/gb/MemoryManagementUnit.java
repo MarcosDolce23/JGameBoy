@@ -4,10 +4,26 @@ public class MemoryManagementUnit {
 	
 	public byte[] ram;
 	
+	private boolean enableRam = false;
+	private boolean romBanking = false;
+	
 	// Return an int representation of the value of the memory at the give index
 	public int getByte(int index) {
+		
+		// Are we reading from the rom memory bank?
+		if ((index >= 0x4000) && (index <= 0x7fff)) {
+			int newindex = index - 0x4000 ;
+			return Main.cartridge.cartridgeMemory[newindex + (Main.cartridge.currentRomBank * 0x4000)] & 0xff;
+		}
+
+		// Are we reading from ram memory bank?
+		else if ((index >= 0xa000) && (index <= 0xbfff)) {
+			int newindex = index - 0xa000;
+			return Main.cartridge.ramBanks[newindex + (Main.cartridge.currentRamBank * 0x2000)] & 0xff;
+		}
+		
 		if (index == 0xff00) return Main.joypad.getJoypadState();
-		return ram[index] & 0xFF;
+		return ram[index] & 0xff;
 	}
 	
 	public int getSignedByte(int index) {
@@ -18,7 +34,16 @@ public class MemoryManagementUnit {
 	public void setByte(int index, int value) {
 		
 		// Read Only Memory for Rom
-		if (index < 0x8000) {}
+		if (index < 0x8000) {
+			handleBanking(index, value);
+		}
+
+		else if ((index >= 0xa000) && (index < 0xc000)) {
+			if (enableRam) {
+		       int newIndex = index - 0xa000;
+		       Main.cartridge.ramBanks[newIndex + (Main.cartridge.currentRamBank * 0x2000)] = (byte) value;
+		     }
+		}
 		
 		// Writing to ECHO Ram also writes in RAM
 		else if ((index >= 0xe000 ) && (index < 0xfe00)) {
@@ -33,11 +58,6 @@ public class MemoryManagementUnit {
 		else {
 			
 			if (index == 0xff00) {
-//				Main.joypad.actionButtons = (value & 0x20) != 0x20 ? true : false;
-//                Main.joypad.directionButtons = (value & 010) != 0x10 ? true : false;
-//
-//                Main.joypad.CheckJoypad();
-
                 ram[index] &= 0x0f;
 				ram[index] |= (value & 0xf0) | 0xc0;
 				return;
@@ -64,6 +84,11 @@ public class MemoryManagementUnit {
 			}
 			
 			if (index == 0xff06) {
+				ram[index] = (byte) value;
+				return;
+			}
+			
+			if (index == 0xff07) {
 				ram[index] = (byte) (value | 0xf8);
 				return;
 			}
@@ -189,8 +214,8 @@ public class MemoryManagementUnit {
 				int dest = value * 256;
 				
 				for (int i = 0; i < 0xa0; i++) {
-					int data = getByte(dest | i);
-					setByte(0xfe00 | i, data);
+					int val = getByte(dest | i);
+					setByte(0xfe00 | i, val);
 				}
 			}
 			
@@ -322,5 +347,90 @@ public class MemoryManagementUnit {
 	public MemoryManagementUnit() {
 		ram = new byte[0x10000]; // No estoy seguro del " + 1" lo agregué porque si escribo en el registro FFFF me da error ya que llega hasta el FFFE. Necesito clarificar este asunto
 		setBootValues();
+	}
+	
+	private void handleBanking(int index, int value) {
+		// do RAM enabling
+		if (index < 0x2000) {
+			if (Main.cartridge.mbc1 || Main.cartridge.mbc2) {
+				doRamBankEnable(index,value);
+			}
+		}
+
+		// do ROM bank change
+		else if ((index >= 0x200) && (index < 0x4000)) {
+			if (Main.cartridge.mbc1 || Main.cartridge.mbc2) {
+				doChangeLoRomBank(value) ;
+			}
+		}
+
+		// do ROM or RAM bank change
+		else if ((index >= 0x4000) && (index < 0x6000)) {
+			// There is no rambank in mbc2 so always use rambank 0
+			if (Main.cartridge.mbc1) {
+				if(romBanking) {
+					doChangeHiRomBank(value);
+				}
+				else {
+					doRamBankChange(value);
+				}
+			}
+		}
+
+		// this will change whether we are doing ROM banking
+		// or RAM banking with the above if statement
+		else if ((index >= 0x6000) && (index < 0x8000)) {
+			if (Main.cartridge.mbc1)
+				doChangeRomRamMode(value);
+		}
+
+	}
+	
+	private void doRamBankEnable(int index, int value) {
+		if (Main.cartridge.mbc2) {
+//			if (testBit(index, 4) == 1) return;
+			if ((index & 0x0010) == 0x0010) return;
+		}
+
+		byte testvalue = (byte) (value & 0xf);
+		
+		if (testvalue == 0xa)
+			enableRam = true;
+		else if (testvalue == 0x0)
+			enableRam = false;
+	}
+	
+	private void doChangeLoRomBank(int value) {
+		if (Main.cartridge.mbc2) {
+			Main.cartridge.currentRomBank = (byte) (value & 0xf);
+			if (Main.cartridge.currentRomBank == 0) Main.cartridge.currentRomBank++;
+				return ;
+	   }
+		
+		byte lower5 = (byte) (value & 31);
+		Main.cartridge.currentRomBank &= 224; // turn off the lower 5
+		Main.cartridge.currentRomBank |= lower5 ;
+		if (Main.cartridge.currentRomBank == 0) Main.cartridge.currentRomBank++;
+	}
+	
+	private void doChangeHiRomBank(int value) {
+		// turn off the upper 3 bits of the current rom
+		Main.cartridge.currentRomBank &= 31;
+
+		// turn off the lower 5 bits of the data
+		value &= 224;
+		Main.cartridge.currentRomBank |= value;
+		if (Main.cartridge.currentRomBank == 0) Main.cartridge.currentRomBank++ ;
+	}
+	
+	private void doRamBankChange(int value) {
+		Main.cartridge.currentRamBank = (byte) (value & 0x3);
+	}
+	
+	private void doChangeRomRamMode(int value) {
+		byte newValue = (byte) (value & 0x1);
+		romBanking = (newValue == 0) ? true : false;
+		if (romBanking)
+			Main.cartridge.currentRamBank = 0;
 	}
 }

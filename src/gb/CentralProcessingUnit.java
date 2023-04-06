@@ -2,113 +2,112 @@ package gb;
 
 import java.util.concurrent.TimeUnit;
 
-public class Cpu {
+
+public class CentralProcessingUnit {
 	
 	// CPU Timing
 	
-    public int cyclespersec = 4194304; // 4194304
+    public int cyclespersec = 4194304;
 
     public int cyclesperframe; 
     public int interval = 0;
+    
+    public int cycles = 0;
 	
 	//CPU registers and flags
 	
 	// Registers
 	
 	// A: Accumulators, F: Flags
-	public static int A;
-	public static int F;
+	public int A;
+	public int F;
 	
-	public static int B;
-	public static int C;
+	public int B;
+	public int C;
 	
-	public static int D;
-	public static int E;
+	public int D;
+	public int E;
 	
-	public static int H;
-	public static int L;
+	public int H;
+	public int L;
 	
 	// Stack Pointer
-	public static int SP;
+	public int SP;
 	
 	// Progmem Counter/Pointer
-	public static int PC;
+	public int PC;
 	
-	public static boolean IME = false;
+	public boolean IME = false;
 	
-	public static boolean HALT = false;
+	public boolean HALT = false;
 	
-	public static boolean haltbugAtm = false;
+	public boolean haltbugAtm = false;
 	
-	private static int divClocksum = 0;
+	private int divClocksum = 0;
 	
-	private static int timerClocksum = 0;
+	private int timerClocksum = 0;
 	
-	public static int getBC() {
+	public int getBC() {
 		return ((B << 8) + C);
 	}
 	
-	public static int getDE() {
+	public int getDE() {
 		return ((D << 8) + E);
 	}
 	
-	public static int getHL() {
+	public int getHL() {
 		return ((H << 8) + L);
 	}
 	
-//	public static int getSP() {
-//		return ((S << 8) + P);
-//	}
-	
-	public static int getFlagZ() {
-		return (Cpu.F & 0x80) >> 7;
+	public int getFlagZ() {
+		return (F & 0x80) >> 7;
 	}
 	
-	public static int getFlagN() {
-		return (Cpu.F & 0x40) >> 6;
+	public int getFlagN() {
+		return (F & 0x40) >> 6;
 	}
 	
-	public static int getFlagH() {
-		return (Cpu.F & 0x20) >> 5;
+	public int getFlagH() {
+		return (F & 0x20) >> 5;
 	}
 	
-	public static int getFlagC() {
-		return (Cpu.F & 0x10) >> 4;
+	public int getFlagC() {
+		return (F & 0x10) >> 4;
 	}
 	
-	public static void setFlagZ() {
+	public void setFlagZ() {
 		F |= 0x80; // Set flag Z to 1
 	}
 	
-	public static void setFlagN() {
+	public void setFlagN() {
 		F |= 0x40; // Set flag N to 1
 	}
 	
-	public static void setFlagH() {
+	public void setFlagH() {
 		F |= 0x20; // Set flag H to 1
 	}
 	
-	public static void setFlagC() {
+	public void setFlagC() {
 		F |= 0x10; // Set flag C to 1
 	}
 
-	public static void resetFlagZ() {
+	public void resetFlagZ() {
 		F &= 0x7f; // Set flag Z to 0
 	}
 	
-	public static void resetFlagN() {
+	public void resetFlagN() {
 		F &= 0xbf; // Set flag N to 0
 	}
 
-	public static void resetFlagH() {
+	public void resetFlagH() {
 		F &= 0xdf; // Set flag H to 0
 	}
 
-	public static void resetFlagC() {
+	public void resetFlagC() {
 		F &= 0xef; // Set flag C to 0
 	}	
 	
-	public static void checkHalfCarry8bit(int value1, int value2) {
+	public void checkHalfCarry8bit(int value1, int value2) {
 		if ((value1 & 0xf) + (value2 & 0xf) > 0xf) {
 			setFlagH();
 		} else {
@@ -116,7 +115,7 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkCarry8bit(int value) {
+	public void checkCarry8bit(int value) {
 		if (value > 0xff) {
 			setFlagC();
 		} else {
@@ -124,7 +123,7 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkHalfCarry16bit(int value1, int value2) {
+	public void checkHalfCarry16bit(int value1, int value2) {
 		if ((value1 & 0xfff) + (value2 & 0xfff) > 0xfff) {
 			setFlagH();
 		} else {
@@ -132,7 +131,7 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkCarry16bit(int value) {
+	public void checkCarry16bit(int value) {
 		if (value > 0xffff) {
 			setFlagC();
 		} else {
@@ -140,7 +139,7 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkCarry8bitSub(int value1, int value2) {
+	public void checkCarry8bitSub(int value1, int value2) {
 		if (value1 < value2) {
 			setFlagC();
 		} else {
@@ -148,7 +147,7 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkHalfCarry8bitSub(int value1, int value2) {
+	public void checkHalfCarry8bitSub(int value1, int value2) {
 		if ((value1 & 0xf) < (value2 & 0xf)) {
 			setFlagH();
 		} else {
@@ -156,7 +155,7 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkHalfCarry16bitSub(int value1, int value2) {
+	public void checkHalfCarry16bitSub(int value1, int value2) {
 		if ((value1 & 0xff) < (value2 & 0xff)) {
 			setFlagH();
 		} else {
@@ -164,7 +163,7 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkCarry16bitSub(int value1, int value2) {
+	public void checkCarry16bitSub(int value1, int value2) {
 		if (value1 < value2) {
 			setFlagC();
 		} else {
@@ -172,16 +171,16 @@ public class Cpu {
 		}
 	}
 	
-	public static void checkZero8bit(int value) {
-		if (value == 0x00) {
+	public void checkZero8bit(int value) {
+		if ((value & 0xff)== 0x00) {
 			setFlagZ();
 		} else {
 			resetFlagZ();
 		}
 	}
 	
-	public static void checkZero16bit(int value) {
-		if (value == 0x0000) {
+	public void checkZero16bit(int value) {
+		if ((value & 0xffff) == 0x0000) {
 			setFlagZ();
 		} else {
 			resetFlagZ();
@@ -190,16 +189,16 @@ public class Cpu {
 	
 	// Función para realizar un desplazamiento circular a la izquierda o un desplazamiento circular a la derecha
 	// en posiciones de entero `n` por `k` basadas en el indicador `isLeftShift`
-	public static int circularShift(int n, int k, boolean isLeftShift)
-	{
-	    // desplazamiento a la izquierda por `k`
-	    if (isLeftShift) {
-	        return ((n << k) | (n >> (8 - k))) & 0xff;
-	    }
-	 
-	    // desplazamiento a la derecha por `k`
-	    return ((n >> k) | (n << (8 - k)))  & 0xff;
-	}
+//	public static int circularShift(int n, int k, boolean isLeftShift)
+//	{
+//	    // desplazamiento a la izquierda por `k`
+//	    if (isLeftShift) {
+//	        return ((n << k) | (n >> (8 - k))) & 0xff;
+//	    }
+//	 
+//	    // desplazamiento a la derecha por `k`
+//	    return ((n >> k) | (n << (8 - k)))  & 0xff;
+//	}
 	
 //	FFFF — IE: Interrupt enable
 //	
@@ -307,29 +306,27 @@ public class Cpu {
 		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xef);
 	}
 	
-	public static int fetch() {
+	public int fetch() {
 		int pc = PC;
 		PC += 1;
 		
 		return Main.mmu.getByte(pc);
 	}
 	
-	public static int fetchSigned() {
+	public int fetchSigned() {
 		int pc = PC;
 		PC += 1;
 		return Main.mmu.getSignedByte(pc);
 	}
 	
-	public static int fetchSP() {
+	public int fetchSP() {
 		int sp = SP;
 		SP += 1;
 		return Main.mmu.getByte(sp);
 		
 	}
 	
-	public static int cycles = 0;
-	
-	public Cpu() {
+	public CentralProcessingUnit() {
 		
 		A = 0x01;
 		F = 0xb0;
@@ -345,13 +342,11 @@ public class Cpu {
 		
 		SP = 0xfffe;
 		
-		PC = 0x0000;
+		PC = 0x0100;
+		cycles = 0;
 	}
 	
 	public void loopExe(int extractCycles) throws InterruptedException {
-		PC = 0x0100;
-		cycles = 0;
-		
 		System.out.println("Running...");
 
 		while (true) {
@@ -391,7 +386,7 @@ public class Cpu {
 		
 		handleTimer(cycles);
 		Main.ppu.handleScan(cycles);
-//		test();
+		test();
 		
 		return cycles;
 	}
@@ -411,70 +406,65 @@ public class Cpu {
 			//  v-blank interrupt
 			if (getIEVBlank() & getIFVBlank()) {
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
 				PC = 0x40;
 				InstructionSet.DI();
 				resetIFVBlank();
-				Cpu.cycles += 16; // Add the other cycles beside DI()
-//				Cpu.HALT = false;
+				cycles += 16; // Add the other cycles beside DI()
 				return true;
 			}
 			
 			// LCD STAT interrupt 
 			if (getIELCDSTAT() & getIFLCDSTAT()) {
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
 				PC = 0x48;
 				InstructionSet.DI();
 				resetIFLCDSTAT();
-				Cpu.cycles += 16; // Add the other cycles beside DI()
-//				Cpu.HALT = false;
+				cycles += 16; // Add the other cycles beside DI()
 				return true;
 			}
 			
 			// Timer interrupt
 			if (getIETimer() & getIFTimer()) {
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
 				PC = 0x50;
 				InstructionSet.DI();
 				resetIFTimer();
-				Cpu.cycles += 16; // Add the other cycles beside DI()
-//				Cpu.HALT = false;
+				cycles += 16; // Add the other cycles beside DI()
 				return true;
 			}
 			
 			// Serial interrupt
 			if (getIESerial() & getIFSerial()) {
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
 				PC = 0x58;
 				InstructionSet.DI();
 				resetIFSerial();
-				Cpu.cycles += 16; // Add the other cycles beside DI()
-//				Cpu.HALT = false;
+				cycles += 16; // Add the other cycles beside DI()
 				return true;
 			}
 			
 			// Joypad interrupt
 			if (getIEJoypad() & getIFJoypad()) {
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, (Cpu.PC & 0xff00) >> 8); // High byte of PC
+				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
 				SP -= 1;
-				Main.mmu.setByte(Cpu.SP, Cpu.PC & 0xff); // Low byte of PC
+				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
 				PC = 0x60;
 				InstructionSet.DI();
 				resetIFJoypad();
-				Cpu.cycles += 16; // Add the other cycles beside DI()
-//				Cpu.HALT = false;
+				cycles += 16; // Add the other cycles beside DI()
 				return true;
 			}
 		}
@@ -487,9 +477,10 @@ public class Cpu {
 		divClocksum += cycles;
 		
 		if (divClocksum >= 256) {
+//			int res = (Main.mmu.getByte(0xff04) + 1) & 0xff;
+//			Main.mmu.setByte(0xff04, res);
+			Main.mmu.ram[0xff04]++;
 			divClocksum -= 256;
-			int res = (Main.mmu.getByte(0xff04) + 1) & 0xff;
-			Main.mmu.setByte(0xff04, res);
 		}
 
 //		check if timer is on
@@ -511,10 +502,13 @@ public class Cpu {
 			while (timerClocksum >= (4194304 / freq)) {
 				
 //				increase TIMA
-				int res = (Main.mmu.getByte(0xff05) + 1) & 0xff;
-				Main.mmu.setByte(0xff05, res);
+//				int res = (Main.mmu.getByte(0xff05) + 1) & 0xff;
+//				Main.mmu.setByte(0xff05, res);
+				int aux = Main.mmu.getByte(0xff05); // I set this auxiliar because TIMA will never be greater than 255 beacause will be set to 0 before.
+				Main.mmu.ram[0xff05]++;
+				aux++;
 //				check TIMA for overflow
-				if (Main.mmu.getByte(0xff05) == 0x00) {
+				if (aux > 0xff) {
 //					set timer interrupt request
 					Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) | 0x04);
 //					reset timer to timer modulo
