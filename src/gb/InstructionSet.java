@@ -2258,6 +2258,8 @@ public class InstructionSet {
 		int l = Main.cpu.fetchSP();
 		int h = Main.cpu.fetchSP();
 		int res = (h << 8) + l;
+		
+		Main.cpu.IME = true;
 		Main.cpu.PC = res & 0xffff;
 		Main.cpu.cycles += 16;
 	}

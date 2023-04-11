@@ -19,14 +19,17 @@ public class Cartridge {
 	
 	public boolean mbc1;
 	public boolean mbc2;
+	public boolean mbc3;
 	
-	public byte currentRomBank = 1;
+	public int romBankNumber = 1;
+	
+	public int rtg = 0;
 	
 //	Cartridge memory address 0x148 tells how much RAM banks the game has.
 //	The maximum is 4. The size of 1 RAM bank is 0x2000 bytes
 //	so if we have an array of size 0x8000 this is enough space for all the RAM banks
 	public byte[] ramBanks = new byte[0x8000];
-	public byte currentRamBank = 0;
+	public int ramBankNumber = 0;
 	
 	public void load(String src) throws IOException {
 		File rom = new File(src);
@@ -58,6 +61,11 @@ public class Cartridge {
 		   case 3 : mbc1 = true; break;
 		   case 5 : mbc2 = true; break;
 		   case 6 : mbc2 = true; break;
+		   case 15: mbc3 = true; break;
+		   case 16: mbc3 = true; break;
+		   case 17: mbc3 = true; break;
+		   case 18: mbc3 = true; break;
+		   case 19: mbc3 = true; break;
 		   default : break ;
 		}
 		

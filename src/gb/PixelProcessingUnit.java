@@ -49,6 +49,7 @@ public class PixelProcessingUnit extends JPanel {
 	  int ly = 0;
 	  
 	  int wilc = 0; // Window internal line counter
+	  int sub_ly = 0; // Used to decide which row of tile to draw
 	  boolean winOnThisFrame = false;
 
 	  Color[] pallete = {
@@ -108,8 +109,6 @@ public class PixelProcessingUnit extends JPanel {
   private int scrollX() {
     return Main.mmu.getByte(0xff43);
   }
-
-  int sub_ly = 0; // Used to decide which row of tile to draw
 
   private int lyc() {
 	  return Main.mmu.getByte(0xff45);
@@ -225,6 +224,7 @@ public class PixelProcessingUnit extends JPanel {
   public void turnLcdOff() {
       ppuclocks = 0;
       statsignal = false;
+      Main.mmu.ram[0xff44] = 0;
 
       writeMode(0); // When LCD disabled, stat mode is 0
 
@@ -235,13 +235,14 @@ public class PixelProcessingUnit extends JPanel {
 
   public void turnLcdOn() {
       // Reset LY (and WILC) to 0
-      ly = 
+      ly = 0;
       wilc = 0;
       winOnThisFrame = false;
       // Don't forget to check for dos concedenes =)
       checkCoincidence();
       
       writeMode(2); // When LCD enabled again, mode 2
+      img.flush();
   }
   
   private void writeMode(int mode) {
@@ -255,7 +256,11 @@ public class PixelProcessingUnit extends JPanel {
   public void updateStatSignal() {
     boolean presignal = statsignal;
 
-    statsignal = (coinIrqOn() && coincidence()) || (mode2IrqOn() && mode() == 2) || (mode0IrqOn() && mode() == 0) || (mode1IrqOn() && mode() == 1);
+    statsignal = 
+    			(coinIrqOn() && coincidence()) 
+    		|| ((mode0IrqOn() && (mode() == 0)))
+    		|| ((mode1IrqOn() && (mode() == 1)))
+    		|| ((mode2IrqOn() && (mode() == 2)));
 
     if (!presignal && statsignal) {
       int res = Main.mmu.getByte(0xff0f) | 0x02; // Set bit 1
@@ -315,89 +320,85 @@ public class PixelProcessingUnit extends JPanel {
       clearCoincidence();
   }
   
-  public boolean handleScan(int cycled) {
-	  
-	    // Do nothing if LCD is off
-	    if (!lcdEnable())
-	      return true;
+  public void handleScan(int cycled) {
+	  // Do nothing if LCD is off
+	  if (!lcdEnable())
+		  return;
 	    
-	    ppuclocks += cycled;
-
-	    switch (mode()) {
-
-	      // ---- OAM MODE 2 ---- //
-	    case 2:
-	      if (ppuclocks >= oamlength) {
-	        // Mode 2 is over ...
-	        writeMode(3);
-	        searchOam();
-
-	        ppuclocks -= oamlength;
-	      }
-	      break;
-	      // ---- DRAW MODE 3 ---- //
+	  ppuclocks += cycled;
+	  
+	  switch (mode()) {
+	   	// ---- OAM MODE 2 ---- //
+	  	case 2:
+//	  		System.out.println("Mode 2");
+	  		if (ppuclocks >= oamlength) {
+	  			// Mode 2 is over ...
+	  			writeMode(3);
+	  			searchOam();
+	  			ppuclocks -= oamlength;
+	  		}
+	  		break;
+	  	// ---- DRAW MODE 3 ---- //
 	    case 3:
-	      // ... we're just imaginary plotting pixels
-	      if (ppuclocks >= drawlength) {
-	        // Mode 3 is over ...
-	        writeMode(0);
-	        renderScan(); // Finally render on hblank :D
-
-	        ppuclocks -= drawlength;
-	      }
-	      break;
-	      // ---- H-BLANK MODE 0 ---- //
+//	  		System.out.println("Mode 3");
+	    	// ... we're just imaginary plotting pixels
+	    	if (ppuclocks >= drawlength) {
+	    		// Mode 3 is over ...
+	    		writeMode(0);
+	    		renderScan(); // Finally render on hblank :D
+	    		ppuclocks -= drawlength;
+	    	}
+	    	break;
+	    // ---- H-BLANK MODE 0 ---- //
 	    case 0:
-	      // We're relaxin here ...
-	      if (ppuclocks >= hblanklength) {
-	        // Advance LY
-	        ly++;
+//	  		System.out.println("Mode 0");
+	    	// We're relaxin here ...
+	    	if (ppuclocks >= hblanklength) {
+	    		// Advance LY
+	    		ly++;
+	    		checkCoincidence();
+	    		Main.mmu.ram[0xff44] = (byte) ly;
+	    		
+	    		// When entering vblank period ...
+	    		if (ly == gbheight) {
+	    			Main.mmu.ram[0xff0f] |= 0x01; // Request interrupt
+	    			writeMode(1);
+	    			renderImage(); // Draw picture ! (in v-sync uwu)
+	    		} else
+	    			writeMode(2); // Reset
 
-	        checkCoincidence();
-	        Main.mmu.ram[0xff44] = (byte) this.ly;
-
-	        // When entering vblank period ...
-	        if (ly == gbheight) {
-//	          int bt = Main.mmu.getByte(0xff0f);
-//	          Main.mmu.setByte(0xff0f, bt | 0x01); // Request vblank irq !
-	        	Main.mmu.ram[0xff0f] |= 0b00000001; // Set bit 0
-	        	writeMode(1);
-
-	          renderImage(); // Draw picture ! (in v-sync uwu)
-	        } else
-	          writeMode(2); // Reset
-
-	        ppuclocks -= hblanklength;
-	      }
-	      break;
-	      // ---- V-BLANK MODE 1 ---- //
+	    		ppuclocks -= hblanklength;
+	    	}
+	    	break;
+	    // ---- V-BLANK MODE 1 ---- //
 	    case 1:
-	      if (ppuclocks >= scanlinelength) {
-	        // Advance LY
-	        ly++;
-
-	        // Check if out of vblank period ..
-	        if (ly == 154) {
-	          ly = 0;
-	          wilc = 0;
-	          winOnThisFrame = false;
-
-	          checkCoincidence();
-	          writeMode(2); // Reset
-	        } else {
-	          checkCoincidence();
-	          updateStatSignal();
+//	  		System.out.println("Mode 1");
+	    	if (ppuclocks >= scanlinelength) {
+	    		// Advance LY
+	    		ly++;
+//	    		Main.mmu.ram[0xff44] = (byte) ly;
+	    		
+	    		// Check if out of vblank period ..
+	    		if (ly > 153) {
+	    			ly = 0;
+	    			wilc = 0;
+	    			winOnThisFrame = false;
+//	    			Main.mmu.ram[0xff44] = 0;
+	    			checkCoincidence();
+	    			writeMode(2); // Reset
+	    	} else {
+	    		checkCoincidence();
+	    		updateStatSignal();
 	        }
-
-	        Main.mmu.ram[0xff44] = (byte) ly;
-
-	        ppuclocks -= scanlinelength;
-	      }
-	      break;
+	    		Main.mmu.ram[0xff44] = (byte) ly;
+	    		ppuclocks -= scanlinelength;
+	    	}
+	    	break;
 	    }
-
-	    return true;
-	  }
+	  	
+//	  return true;
+	    
+  }
   
   public void renderScan() {
 	  
@@ -578,7 +579,7 @@ public class PixelProcessingUnit extends JPanel {
   }
 
   public void renderImage() {
-    repaint();
+//    repaint();
     update(getGraphics());
   }
   

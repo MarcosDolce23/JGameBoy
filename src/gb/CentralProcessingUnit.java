@@ -356,7 +356,7 @@ public class CentralProcessingUnit {
 			extractCycles = runFrame(extractCycles);
 			
 			Long msAfter = System.currentTimeMillis();
-			Long msSpent = msBefore - msAfter;
+			Long msSpent = msAfter - msBefore;
 			
 			// No estoy seguro de si esto está funcionando
 			TimeUnit.MILLISECONDS.sleep(interval - msSpent);
@@ -1293,7 +1293,7 @@ public class CentralProcessingUnit {
 					InstructionSet.SET_7_A();
 				break;
 				default:
-					System.out.println("Invalid opcode");
+					System.out.println("Invalid opcode: " + (opcode & 0xff));
 			}
 		} else {
 			switch(opcode) {
@@ -2063,7 +2063,7 @@ public class CentralProcessingUnit {
 					InstructionSet.RST_7();
 				break;
 				default:
-					System.out.println("Invalid opcode");
+					System.out.println("Invalid opcode: " + (opcode & 0xff));
 			}
 		}
 	}
