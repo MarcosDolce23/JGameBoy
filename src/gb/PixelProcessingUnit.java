@@ -94,14 +94,14 @@ public class PixelProcessingUnit extends JPanel {
 		return 0;
 	}
 
-  private int wx() {
-	  return (Main.mmu.getByte(0xff4b) - 7);
-  }
-  
   private int wy() {
 	  return Main.mmu.getByte(0xff4a);
   }
-
+	  
+  private int wx() {
+	  return (Main.mmu.getByte(0xff4b) - 7) & 0xff;
+  }
+  
   private int scrollY() {
     return Main.mmu.getByte(0xff42);
   }
@@ -308,7 +308,7 @@ public class PixelProcessingUnit extends JPanel {
       
     }
     
-    Collections.sort(acceptedSprites, (a, b) -> b.x - a.x);
+    Collections.sort(acceptedSprites, (a, b) -> { if (b.x == a.x) return -1; return b.x - a.x;});
   }
 
   public void checkCoincidence() {
@@ -330,7 +330,6 @@ public class PixelProcessingUnit extends JPanel {
 	  switch (mode()) {
 	   	// ---- OAM MODE 2 ---- //
 	  	case 2:
-//	  		System.out.println("Mode 2");
 	  		if (ppuclocks >= oamlength) {
 	  			// Mode 2 is over ...
 	  			writeMode(3);
@@ -340,7 +339,6 @@ public class PixelProcessingUnit extends JPanel {
 	  		break;
 	  	// ---- DRAW MODE 3 ---- //
 	    case 3:
-//	  		System.out.println("Mode 3");
 	    	// ... we're just imaginary plotting pixels
 	    	if (ppuclocks >= drawlength) {
 	    		// Mode 3 is over ...
@@ -351,7 +349,6 @@ public class PixelProcessingUnit extends JPanel {
 	    	break;
 	    // ---- H-BLANK MODE 0 ---- //
 	    case 0:
-//	  		System.out.println("Mode 0");
 	    	// We're relaxin here ...
 	    	if (ppuclocks >= hblanklength) {
 	    		// Advance LY
@@ -372,7 +369,6 @@ public class PixelProcessingUnit extends JPanel {
 	    	break;
 	    // ---- V-BLANK MODE 1 ---- //
 	    case 1:
-//	  		System.out.println("Mode 1");
 	    	if (ppuclocks >= scanlinelength) {
 	    		// Advance LY
 	    		ly++;
@@ -407,9 +403,6 @@ public class PixelProcessingUnit extends JPanel {
 
     int x = scrollX();
     int y = (ly + scrollY()) & 0xff;
-    
-//    this.wy = Main.mmu.getByte(0xff4a);
-//    this.wx = Main.mmu.getByte(0xff4b) - 7; // 7px of offset
    
     int wx = 0;
 
@@ -423,9 +416,12 @@ public class PixelProcessingUnit extends JPanel {
     int winmapbase = windowTileMap() ? 0x9c00 : 0x9800;
 
     int mapindy = bgmapbase + (y >> 3) * 32; // (y / 8 * 32) Beginning of background tile map
-    int winindy = winmapbase + (wilc >> 3) * 32;
+    int winindy = winmapbase + ((wilc >> 3) * 32);
     
-    winOnThisFrame = (ly == wy());
+    if (!winOnThisFrame) {
+    	winOnThisFrame = (ly == wy());
+    }
+    
     boolean inWindowRn = windowEnable() && winOnThisFrame && (wx() < gbwidth);
 
     while (lx < gbwidth) {
@@ -438,8 +434,9 @@ public class PixelProcessingUnit extends JPanel {
         // Calculate tile data address
 
         if (!signedAddressing())
+        	patind = patind << 24 >> 24;
 //          patind = Main.mmu.getByte(mapind);
-        	patind = patind << 24 >> 24; 
+        	
 
         int addr = tiledatabase + (patind << 4) + (sub_wy); // (tile index * 16) Each tile is 16 bytes, (sub_ly * 2) Each line of a tile is 2 bytes
 
@@ -451,7 +448,6 @@ public class PixelProcessingUnit extends JPanel {
         int bitmask = 1 << ((wx ^ 7) & 7);
         int nib = ((hibyte & bitmask) != 0 ? 2 : 0) | ((lobyte & bitmask) != 0 ? 1 : 0);
         
-//        System.out.println("Put: 3");
         int pxind = putPixel(lx, ly, getPalShade(nib));
 
         pxMap[pxind] = (byte) nib;
@@ -482,7 +478,6 @@ public class PixelProcessingUnit extends JPanel {
         int bitmask = 1 << ((x ^ 7) & 7);
         int nib = ((hibyte & bitmask) != 0 ? 2 : 0) | ((lobyte & bitmask) != 0 ? 1 : 0);
         
-//        System.out.println("Put: 4");
         int pxind = putPixel(lx, ly, getPalShade(nib));
 
         pxMap[pxind] = (byte) nib;
@@ -491,7 +486,6 @@ public class PixelProcessingUnit extends JPanel {
         x &= 0xff;
 
       } else {
-//    	  System.out.println("Put: 1");
         int pxind = putPixel(lx, ly, 0);
         pxMap[pxind] = 0;
 
@@ -502,7 +496,8 @@ public class PixelProcessingUnit extends JPanel {
     }
 
     // For every scan we draw a window, inc WILC
-    wilc = inWindowRn ? wilc++ : wilc;
+    if (inWindowRn)
+    	wilc++;
 
     // ----- SPRITES ----- //
     if (spritesEnable()) {
@@ -555,7 +550,7 @@ public class PixelProcessingUnit extends JPanel {
             // Don't draw offscreen pixels
             || sx >= gbwidth 
             || sx < 0 
-            || (sprite.behind && pxMap[pxind_y + sx] > 0)
+            || (sprite.behind && (pxMap[pxind_y + sx] > 0))
           )
             continue;
 

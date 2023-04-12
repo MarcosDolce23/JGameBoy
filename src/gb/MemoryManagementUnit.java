@@ -13,7 +13,7 @@ public class MemoryManagementUnit {
 	public int getByte(int index) {
 		
 		// Cartridge has memory controller?
-		if (Main.cartridge.mbc1) {
+		if (Main.cartridge.mbc1 || Main.cartridge.mbc2 || Main.cartridge.mbc3) {
 			
 			// Reading from Rom bank
 			if ((index >= 0x4000) && (index < 0x8000)) {
@@ -35,7 +35,7 @@ public class MemoryManagementUnit {
 	
 	public int getSignedByte(int index) {
 		// Cartridge has memory controller?
-		if (Main.cartridge.mbc1) {
+		if (Main.cartridge.mbc1 || Main.cartridge.mbc2 || Main.cartridge.mbc3) {
 			
 			// Reading from Rom bank
 			if ((index >= 0x4000) && (index < 0x8000)) {
@@ -358,10 +358,11 @@ public class MemoryManagementUnit {
 						doRamBankChange(value);
 					}
 			}
+			
 			if (Main.cartridge.mbc3) {
 				if (value < 0x04) {
 					Main.cartridge.ramBankNumber = value;
-				} else if (value >= 0x08 && value <= 0x0c) {
+				} else if ((value > 0x07) && (value < 0x0d)) {
 					Main.cartridge.rtg = value;
 				}
 			}
