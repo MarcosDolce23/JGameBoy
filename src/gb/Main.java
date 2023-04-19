@@ -8,6 +8,7 @@ public class Main {
 	public static CentralProcessingUnit cpu = new CentralProcessingUnit();
 	public static MemoryManagementUnit mmu = new MemoryManagementUnit();
 	public static PixelProcessingUnit ppu = new PixelProcessingUnit();
+	public static AudioProcessingUnit apu = new AudioProcessingUnit();
 	public static Cartridge cartridge = new Cartridge();
 	public static Joypad joypad = new Joypad();
 	private static boolean waitingLoop = true;

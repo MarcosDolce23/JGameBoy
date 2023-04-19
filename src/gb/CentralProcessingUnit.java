@@ -386,6 +386,7 @@ public class CentralProcessingUnit {
 		
 		handleTimer(cycles);
 		Main.ppu.handleScan(cycles);
+		Main.apu.handleSound(cycles);
 		test();
 		
 		return cycles;

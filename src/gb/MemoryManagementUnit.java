@@ -29,6 +29,15 @@ public class MemoryManagementUnit {
 		}
 		
 		if (index == 0xff00) return Main.joypad.getJoypadState();
+		
+		// Wave pattern samples
+		if ((index >= 0xff30) && (index <= 0xff3f)) {
+			if (Main.apu.chan3Playback)
+				return ram[0xff30 + (Main.apu.chan3SampleStep >> 1)] & 0xff;
+			else
+				return ram[index] & 0xff;
+		}
+		
 		return ram[index] & 0xff;
 	
 	}
@@ -48,6 +57,14 @@ public class MemoryManagementUnit {
 				int newIndex = (index - 0xA000) + (Main.cartridge.ramBankNumber * 0x2000);
 				return Main.cartridge.ramBanks[newIndex];
 			}
+		}
+		
+		// Wave pattern samples
+		if ((index >= 0xff30) && (index <= 0xff3f)) {
+			if (Main.apu.chan3Playback)
+				return ram[0xff30 + (Main.apu.chan3SampleStep >> 1)];
+			else
+				return ram[index];
 		}
 		
 		return ram[index];
@@ -121,67 +138,193 @@ public class MemoryManagementUnit {
 				return;
 			}
 			
+            // ----- SQUARE CHANEL 1 ----- //
+            // NR10 - sweep reg
 			if (index == 0xff10) {
+                Main.apu.chan1SweepTime = 512 * ((value >> 4) / 128);
+
+                Main.apu.chan1SweepDec = BitOperations.testBit(value, 3) ? true : false;
+                Main.apu.chan1SweepNum = value & 0b0111;
+				
 				ram[index] = (byte) value;
 				return;
 			}
 			
+			// NR11 - length and pattern duty
 			if (index == 0xff11) {
+				Main.apu.chan1PatternDuty = value >> 6;
+                Main.apu.chan1Length = 64 - (value & 0b00111111);
+				
 				ram[index] = (byte) (value | 0x3f);
 				return;
 			}
 			
-			if (index == 0xff012) {
+			// NR12 - volume envelope
+			if (index == 0xff12) {
+                Main.apu.chan1EnvInit =	(value >> 4) / 15f;
+                Main.apu.chan1EnvVol = (value >> 4) / 15f;
+                
+                if (!Main.apu.chan1On)
+                	Main.apu.chan1EnvVol = 0;
+
+                Main.apu.chan1EnvInc = BitOperations.testBit(value, 3) ? true : false;
+                int sweep = Main.apu.chan1EnvSweep = value & 0b0111;
+
+                Main.apu.chan1EnvInterval = 512 * (sweep/64f);
+                Main.apu.chan1EnvOn = sweep > 0;
+				
 				ram[index] = (byte) value;
 				return;
 			}
 			
+			// NR13 - lower 8 bits of frequency
+			if (index == 0xff13) {
+                Main.apu.chan1InitFreq &= 0x700; // Preserve top bits
+                Main.apu.chan1InitFreq |= value;
+                Main.apu.chan1RawFreq = Main.apu.chan1InitFreq;
+                return;
+			}
+			
+			// NR14 - higher 3 bits of frequency
 			if (index == 0xff14) {
+                Main.apu.chan1CounterSelect = (BitOperations.testBit(value, 6)) ? true : false; 
+
+                Main.apu.chan1InitFreq &= 0xff; // Preserve bottom bits
+                Main.apu.chan1InitFreq |= (value & 0x7) << 8;
+                Main.apu.chan1RawFreq = Main.apu.chan1InitFreq;
+
+                // Trigger event
+                if (BitOperations.testBit(value, 7))
+                    Main.apu.chan1Trigger();
+
 				ram[index] = (byte) (value | 0xbf);
 				return;
 			}
 			
+			// ---- SQUARE CHANNEL 2 ---- //
+            // NR21 - length and pattern duty
 			if (index == 0xff16) {
+				Main.apu.chan2PatternDuty = value >> 6;
+                Main.apu.chan2Length = 64 - (value & 0x3f);
+                
 				ram[index] = (byte) (value | 0x3f);
 				return;
 			}
 			
+			// NR22 - volume envelope
 			if (index == 0xff17) {
-				ram[index] = (byte) (value | 0x3f);
+				Main.apu.chan2EnvInit = (value >> 4) / 15f;
+		        Main.apu.chan2EnvVol = (value >> 4) / 15f;
+
+		        Main.apu.chan2EnvInc = BitOperations.testBit(value, 3) ? true : false;
+		        int sweep = Main.apu.chan2EnvSweep = value & 0x7;
+
+		        Main.apu.chan2EnvInterval = 512 * (sweep/64f);
+		        Main.apu.chan2EnvOn = sweep > 0;
+		                
+				ram[index] = (byte) value;
 				return;
 			}
 			
+			// NR23 - lower 8 bits of frequency
+			if (index == 0xff18) {
+				Main.apu.chan2RawFreq &= 0x700; // Preserve top bits
+				Main.apu.chan2RawFreq |= value;
+                return;
+			}
+			
+			// NR24 - higher 3 bits of frequency
 			if (index == 0xff19) {
+				Main.apu.chan2CounterSelect = BitOperations.testBit(value, 6) ? true : false; 
+
+                Main.apu.chan2RawFreq &= 0xff; // Preserve bottom bits
+                Main.apu.chan2RawFreq |= (value & 0x7) << 8;
+
+                // Trigger event
+                if (BitOperations.testBit(value, 7))
+                    Main.apu.chan2Trigger();
+				
 				ram[index] = (byte) (value | 0xbf);
 				return;
 			}
 			
+			// ---- WAVE CHANNEL 3 ---- //
+            // NR30 - playback enable
 			if (index == 0xff1a) {
+				if (!(Main.apu.chan3Playback = BitOperations.testBit(value, 7) ? true : false))
+                    Main.apu.chan3Disable();
+				
 				ram[index] = (byte) (value | 0x7f);
 				return;
 			}
 			
+			// NR31 - length
+			if (index == 0xff1b) {
+				Main.apu.chan3Length = 256 - value;
+                return;
+			}
+			
+			// NR32 - volume shift
 			if (index == 0xff1c) {
+				int volshift = (value & 0x60) >> 5;
+                    
+                if (volshift != 0) {
+                	Main.apu.chan3InitVolShift = volshift - 1;
+                	volshift = volshift - 1;
+                } else {
+                	Main.apu.chan3InitVolShift = 4;
+                	volshift = 4;
+                }
+
+                if (Main.apu.chan3On)
+                    Main.apu.chan3VolShift = volshift;
+				
 				ram[index] = (byte) (value | 0x9f);
 				return;
 			}
 			
+			// NR33 - lower 8 bits of frequency
+			if (index == 0xff1d) {
+				Main.apu.chan3RawFreq &= 0x700; // Preserve top bits
+                Main.apu.chan3RawFreq |= value;
+                return;
+			}
+			
+			// NR34 - higher 3 bits of frequency
 			if (index == 0xff1e) {
+				Main.apu.chan3CounterSelect = BitOperations.testBit(value, 6) ? true : false; 
+
+                Main.apu.chan3RawFreq &= 0xff; // Preserve bottom bits
+                Main.apu.chan3RawFreq |= (value & 0b0111) << 8;
+
+                // Trigger event
+                if (BitOperations.testBit(value, 7))
+                    Main.apu.chan3Trigger();
+				
 				ram[index] = (byte) (value | 0xbf);
 				return;
 			}
 			
-			if (index == 0xff3f) {
-				ram[index] = (byte) value;
-				return;
+			// Wave pattern samples
+			if ((index >= 0xff30) && (index <= 0xff3f)) {
+                if (Main.apu.chan3Playback)
+                    ram[0xff30 + (Main.apu.chan3SampleStep >> 1)] = (byte) value;
+                else
+                    ram[index] = (byte) value;
+                return;
 			}
 			
+			// ---- AUDIO SETTINGS ---- //
+            // NR50 - i need this so pokemon blue dont freeze
 			if (index == 0xff24) {
 				ram[index] = (byte) value;
 				return;
 			}
 			
+			// NR52 - Sound enable / status
 			if (index == 0xff26) {
+				Main.apu.soundOn = BitOperations.testBit(value, 7) ? true : false;
+
 				ram[index] = (byte) (value | 0x7f);
 				return;
 			}
@@ -286,24 +429,24 @@ public class MemoryManagementUnit {
 		ram[0xff04] = (byte) 0xab;
 		ram[0xff07] = (byte) 0xf8;
 		ram[0xff0f] = (byte) 0xe1;
-		ram[0xff10] = (byte) 0x80;
-		ram[0xff11] = (byte) 0xbf;
-		ram[0xff12] = (byte) 0xf3;
-		ram[0xff13] = (byte) 0xff;
-		ram[0xff14] = (byte) 0xbf;
-		ram[0xff16] = (byte) 0x3f;
-		ram[0xff18] = (byte) 0xff;
-		ram[0xff19] = (byte) 0xbf;
-		ram[0xff1a] = (byte) 0x7f;
-		ram[0xff1b] = (byte) 0xff;
-		ram[0xff1c] = (byte) 0x9f;
-		ram[0xff1d] = (byte) 0xff;
-		ram[0xff1e] = (byte) 0xbf;
-		ram[0xff20] = (byte) 0xff;
-		ram[0xff23] = (byte) 0xbf;
-		ram[0xff24] = (byte) 0x77;
-		ram[0xff25] = (byte) 0xf3;
-		ram[0xff26] = (byte) 0xf1;
+//		ram[0xff10] = (byte) 0x80;
+//		ram[0xff11] = (byte) 0xbf;
+//		ram[0xff12] = (byte) 0xf3;
+//		ram[0xff13] = (byte) 0xff;
+//		ram[0xff14] = (byte) 0xbf;
+//		ram[0xff16] = (byte) 0x3f;
+//		ram[0xff18] = (byte) 0xff;
+//		ram[0xff19] = (byte) 0xbf;
+//		ram[0xff1a] = (byte) 0x7f;
+//		ram[0xff1b] = (byte) 0xff;
+//		ram[0xff1c] = (byte) 0x9f;
+//		ram[0xff1d] = (byte) 0xff;
+//		ram[0xff1e] = (byte) 0xbf;
+//		ram[0xff20] = (byte) 0xff;
+//		ram[0xff23] = (byte) 0xbf;
+//		ram[0xff24] = (byte) 0x77;
+//		ram[0xff25] = (byte) 0xf3;
+//		ram[0xff26] = (byte) 0xf1;
 		ram[0xff40] = (byte) 0x91;
 		ram[0xff41] = (byte) 0x86;
 		ram[0xff46] = (byte) 0xff;
