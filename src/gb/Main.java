@@ -11,7 +11,7 @@ public class Main {
 	public static AudioProcessingUnit apu = new AudioProcessingUnit();
 	public static Cartridge cartridge = new Cartridge();
 	public static Joypad joypad = new Joypad();
-	private static boolean waitingLoop = true;
+//	private static boolean waitingLoop = true;
 	
 	
 	public static void main(String[] args) throws IOException, InterruptedException {
@@ -32,7 +32,7 @@ public class Main {
 	
 	public static void start() {
 		setFPS();
-		waitingLoop = false;
+//		waitingLoop = false;
 	}
 
 }
