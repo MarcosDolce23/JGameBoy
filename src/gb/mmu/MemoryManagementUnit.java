@@ -1,5 +1,6 @@
-package gb;
+package gb.mmu;
 
+import gb.Main;
 import gb.utils.BitOperations;
 
 public class MemoryManagementUnit {

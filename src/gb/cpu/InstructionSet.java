@@ -1,4 +1,7 @@
-package gb;
+package gb.cpu;
+
+import gb.Main;
+import gb.utils.BitOperations;
 
 public class InstructionSet {
 	
@@ -86,7 +89,7 @@ public class InstructionSet {
 			Main.cpu.resetFlagC();
 		}
 		
-		Main.cpu.A = ((Main.cpu.A << 1) | (Main.cpu.A >> 7)) & 0xff; // Rotate to left
+		Main.cpu.A = BitOperations.rotateLeft(Main.cpu.A);
 		Main.cpu.cycles += 4;
 	}
 	
@@ -176,7 +179,7 @@ public class InstructionSet {
 			Main.cpu.resetFlagC();
 		}
 		
-		Main.cpu.A = ((Main.cpu.A << 7) | (Main.cpu.A >> 1)) & 0xff; // Rotate to right
+		Main.cpu.A = BitOperations.rotateRight(Main.cpu.A);
 		Main.cpu.cycles += 4;
 	}
 	
@@ -1055,9 +1058,9 @@ public class InstructionSet {
         int IF = Main.mmu.getByte(0xff0f);
         int IE = Main.mmu.getByte(0xffff);
 
-        // Exit hell if an interrupt is valid to be serviced
+        // Exit if an interrupt is valid to be serviced
         if ((IF & IE & 0x1f) > 0) {
-            Main.cpu.haltbugAtm = !(Main.cpu.HALT || Main.cpu.IME);
+            Main.cpu.haltBugAtm = !(Main.cpu.HALT || Main.cpu.IME);
             Main.cpu.HALT = false;
         }
          // If we cannot exit hell, stay in hell.

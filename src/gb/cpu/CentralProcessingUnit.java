@@ -1,50 +1,49 @@
-package gb;
+package gb.cpu;
 
-import java.util.concurrent.TimeUnit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.Timer;
+
+import gb.Main;
+import gb.utils.BitOperations;
 
 
 public class CentralProcessingUnit {
 	
 	// CPU Timing
-	
-    public int cyclespersec = 4194304;
-
-    public int cyclesperframe; 
+    public int cyclesPerSec = 4194304;
+    public int cyclesPerFrame; 
     public int interval = 0;
-    
     public int cycles = 0;
+	private int cycled = 0;
+	private Timer timer;
 	
 	//CPU registers and flags
+	public int A = 0; // Accumulator
+	public int F = 0; // Flags
 	
-	// Registers
+	public int B = 0;
+	public int C = 0;
 	
-	// A: Accumulators, F: Flags
-	public int A;
-	public int F;
+	public int D = 0;
+	public int E = 0;
 	
-	public int B;
-	public int C;
-	
-	public int D;
-	public int E;
-	
-	public int H;
-	public int L;
+	public int H = 0;
+	public int L = 0;
 	
 	// Stack Pointer
 	public int SP;
 	
-	// Progmem Counter/Pointer
+	// Program Counter/Pointer
 	public int PC;
 	
+	// CPU Flags
 	public boolean IME = false;
-	
 	public boolean HALT = false;
-	
-	public boolean haltbugAtm = false;
-	
+	public boolean haltBugAtm = false;
+
 	private int divClocksum = 0;
-	
 	private int timerClocksum = 0;
 	
 	public int getBC() {
@@ -76,35 +75,35 @@ public class CentralProcessingUnit {
 	}
 	
 	public void setFlagZ() {
-		F |= 0x80; // Set flag Z to 1
+		F = BitOperations.bitSet(F, 7); // Set flag Z to 1
 	}
 	
 	public void setFlagN() {
-		F |= 0x40; // Set flag N to 1
+		F = BitOperations.bitSet(F, 6); // Set flag N to 1
 	}
 	
 	public void setFlagH() {
-		F |= 0x20; // Set flag H to 1
+		F = BitOperations.bitSet(F, 5); // Set flag H to 1
 	}
 	
 	public void setFlagC() {
-		F |= 0x10; // Set flag C to 1
+		F = BitOperations.bitSet(F, 4); // Set flag C to 1
 	}
 
 	public void resetFlagZ() {
-		F &= 0x7f; // Set flag Z to 0
+		F = BitOperations.bitReset(F, 7); // Set flag Z to 0
 	}
 	
 	public void resetFlagN() {
-		F &= 0xbf; // Set flag N to 0
+		F = BitOperations.bitReset(F, 6); // Set flag N to 0
 	}
 
 	public void resetFlagH() {
-		F &= 0xdf; // Set flag H to 0
+		F = BitOperations.bitReset(F, 5); // Set flag H to 0
 	}
 
 	public void resetFlagC() {
-		F &= 0xef; // Set flag C to 0
+		F = BitOperations.bitReset(F, 4); // Set flag C to 0
 	}	
 	
 	public void checkHalfCarry8bit(int value1, int value2) {
@@ -187,19 +186,6 @@ public class CentralProcessingUnit {
 		}
 	}
 	
-	// Función para realizar un desplazamiento circular a la izquierda o un desplazamiento circular a la derecha
-	// en posiciones de entero `n` por `k` basadas en el indicador `isLeftShift`
-//	public static int circularShift(int n, int k, boolean isLeftShift)
-//	{
-//	    // desplazamiento a la izquierda por `k`
-//	    if (isLeftShift) {
-//	        return ((n << k) | (n >> (8 - k))) & 0xff;
-//	    }
-//	 
-//	    // desplazamiento a la derecha por `k`
-//	    return ((n >> k) | (n << (8 - k)))  & 0xff;
-//	}
-	
 //	FFFF — IE: Interrupt enable
 //	
 //	Bit 0: VBlank   Interrupt Enable  (INT $40)  (1=Enable)
@@ -209,38 +195,23 @@ public class CentralProcessingUnit {
 //	Bit 4: Joypad   Interrupt Enable  (INT $60)  (1=Enable)
 	
 	private boolean getIEVBlank() {
-		if ((Main.mmu.getByte(0xffff) & 0x01) == 0x01) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xffff), 0);
 	}
 	
 	private boolean getIELCDSTAT() {
-		if ((Main.mmu.getByte(0xffff) & 0x02) == 0x02) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xffff), 1);
 	}
 	
 	private boolean getIETimer() {
-		if ((Main.mmu.getByte(0xffff) & 0x04) == 0x04) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xffff), 2);
 	}
 	
 	private boolean getIESerial() {
-		if ((Main.mmu.getByte(0xffff) & 0x08) == 0x08) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xffff), 3);
 	}
 	
 	private boolean getIEJoypad() {
-		if ((Main.mmu.getByte(0xffff) & 0x10) == 0x10) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xffff), 4);
 	}
 	
 //	FF0F — IF: Interrupt flag
@@ -252,58 +223,43 @@ public class CentralProcessingUnit {
 //	Bit 4: Joypad   Interrupt Request (INT $60)  (1=Request)
 	
 	private boolean getIFVBlank() {
-		if ((Main.mmu.getByte(0xff0f) & 0x01) == 0x01) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xff0f), 0);
 	}
 	
 	private boolean getIFLCDSTAT() {
-		if ((Main.mmu.getByte(0xff0f) & 0x02) == 0x02) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xff0f), 1);
 	}
 	
 	private boolean getIFTimer() {
-		if ((Main.mmu.getByte(0xff0f) & 0x04) == 0x04) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xff0f), 2);
 	}
 	
 	private boolean getIFSerial() {
-		if ((Main.mmu.getByte(0xff0f) & 0x08) == 0x08) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xff0f), 3);
 	}
 	
 	private boolean getIFJoypad() {
-		if ((Main.mmu.getByte(0xff0f) & 0x10) == 0x10) {
-			return true;
-		}
-		return false;
+		return BitOperations.testBit(Main.mmu.getByte(0xff0f), 4);
 	}
 	
 	private void resetIFVBlank() {
-		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xfe);
+		Main.mmu.setByte(0xff0f, BitOperations.bitReset(Main.mmu.getByte(0xff0f), 0));
 	}
 	
 	private void resetIFLCDSTAT() {
-		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xfd);
+		Main.mmu.setByte(0xff0f, BitOperations.bitReset(Main.mmu.getByte(0xff0f), 1));
 	}
 	
 	private void resetIFTimer() {
-		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xfb);
+		Main.mmu.setByte(0xff0f, BitOperations.bitReset(Main.mmu.getByte(0xff0f), 2));
 	}
 	
 	private void resetIFSerial() {
-		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xf7);
+		Main.mmu.setByte(0xff0f, BitOperations.bitReset(Main.mmu.getByte(0xff0f), 3));
 	}
 	
 	private void resetIFJoypad() {
-		Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) & 0xef);
+		Main.mmu.setByte(0xff0f, BitOperations.bitReset(Main.mmu.getByte(0xff0f), 4));
 	}
 	
 	public int fetch() {
@@ -327,7 +283,7 @@ public class CentralProcessingUnit {
 	}
 	
 	public CentralProcessingUnit() {
-		
+		// Initialize boot values
 		A = 0x01;
 		F = 0xb0;
 		
@@ -343,28 +299,48 @@ public class CentralProcessingUnit {
 		SP = 0xfffe;
 		
 		PC = 0x0100;
-		cycles = 0;
 	}
 	
+	ActionListener taskPerformer = new ActionListener() {
+        public void actionPerformed(ActionEvent evt) {
+            //...Perform a task...
+
+        	Long msBefore = System.currentTimeMillis();
+    		
+    		try {
+				cycled = runFrame(cycled);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		
+    		Long msAfter = System.currentTimeMillis();
+    		Long msSpent = msAfter - msBefore;
+    		
+    		int aux = (interval - msSpent) > 0 ? (int) (interval - msSpent) : 0;
+    		
+    		timer.setDelay(aux);
+        }
+    };
+    
 	public void loopExe(int extractCycles) throws InterruptedException {
 		System.out.println("Running...");
 
-		while (true) {
-			Long msBefore = System.currentTimeMillis();
-			
-//			Main.joypad.CheckJoypad();
-			extractCycles = runFrame(extractCycles);
-			
-			Long msAfter = System.currentTimeMillis();
-			Long msSpent = msAfter - msBefore;
-			
-			// No estoy seguro de si esto está funcionando
-			TimeUnit.MILLISECONDS.sleep(interval - msSpent);
-		}
+		Long msBefore = System.currentTimeMillis();
+		
+		cycled = runFrame(extractCycles);
+		
+		Long msAfter = System.currentTimeMillis();
+		Long msSpent = msAfter - msBefore;
+		
+	    // Adjust the time of the CPU
+	    timer = new Timer((int) (interval - msSpent), taskPerformer);
+	    timer.setRepeats(true);
+	    timer.start();
 	}
 	
 	private int runFrame(int extractCycles) throws InterruptedException {
-        int cycles = cyclesperframe - extractCycles;
+        int cycles = cyclesPerFrame - extractCycles;
 
         while (cycles > 0) {
             cycles -= step();
@@ -376,8 +352,8 @@ public class CentralProcessingUnit {
 	private int step() throws InterruptedException {
 		int opcode;
 		cycles = 0;
-		if (haltbugAtm) {
-			haltbugAtm = false;
+		if (haltBugAtm) {
+			haltBugAtm = false;
 			opcode = Main.mmu.getByte(PC);
 		} else
 			opcode = fetch();
@@ -387,18 +363,8 @@ public class CentralProcessingUnit {
 		handleTimer(cycles);
 		Main.ppu.handleScan(cycles);
 		Main.apu.handleSound(cycles);
-		test();
 		
 		return cycles;
-	}
-	
-	private void test() {
-//	    blarggs test - serial output
-		if (Main.mmu.getByte(0xff02) == 0x81) {
-		    char c = (char) Main.mmu.getByte(0xff01);
-		    System.out.print(c);
-		    Main.mmu.setByte(0xff02, 0x00);
-		}
 	}
 	
 	private boolean handleInterrupts() {
@@ -478,14 +444,12 @@ public class CentralProcessingUnit {
 		divClocksum += cycles;
 		
 		if (divClocksum >= 256) {
-//			int res = (Main.mmu.getByte(0xff04) + 1) & 0xff;
-//			Main.mmu.setByte(0xff04, res);
 			Main.mmu.ram[0xff04]++;
 			divClocksum -= 256;
 		}
 
 //		check if timer is on
-		if ((Main.mmu.getByte(0xff07) & 0x04) == 0x04) {
+		if (BitOperations.testBit(Main.mmu.getByte(0xff07), 2)) {
 			
 //			set frequency
 			int freq = 4096; //  Hz
@@ -522,6 +486,7 @@ public class CentralProcessingUnit {
 	}
 	
 	private void decode(int opcode) {
+		// Prefixed (0xCB 0xxx)
 		if (opcode == 0xCB) {
 			opcode = fetch();
 			switch(opcode) {

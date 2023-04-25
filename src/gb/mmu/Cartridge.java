@@ -1,8 +1,10 @@
-package gb;
+package gb.mmu;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+
+import gb.Main;
 
 public class Cartridge {
 	
@@ -69,6 +71,7 @@ public class Cartridge {
 		   default : break ;
 		}
 		
+		Main.ui.updateTitle(title);
 	}
 	
 	private String getTitle() {

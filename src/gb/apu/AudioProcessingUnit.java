@@ -1,13 +1,15 @@
-package gb;
+package gb.apu;
 
 import java.io.IOException;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import gb.Main;
 import gb.utils.BitOperations;
 
 public class AudioProcessingUnit {
@@ -16,6 +18,7 @@ public class AudioProcessingUnit {
     private static final int SAMPLE_RATE = 44100;
     private static final int BUFFER_SIZE = 8192;
     private static final AudioFormat FORMAT = new AudioFormat(SAMPLE_RATE, 8, 1, true, true);
+    private SourceDataLine line;
     private float[] bufferQueues = new float[BUFFER_SIZE];
     private byte[] buffer = new byte[BUFFER_SIZE];
 	
@@ -24,10 +27,10 @@ public class AudioProcessingUnit {
 	
     // =============== //   Sound Controller //
     private int soundClocks = 0;
-    private int soundInterval = Main.cpu.cyclespersec / 512; // 8192 cycles
+    private int soundInterval = Main.cpu.cyclesPerSec / 512; // 8192 cycles
 
     private int bufferClocks = 0;
-    private int bufferInterval = (int) Math.ceil(Main.cpu.cyclespersec / 44100);
+    private int bufferInterval = (int) Math.ceil(Main.cpu.cyclesPerSec / SAMPLE_RATE);
 
     private boolean lengthStep = false;
     public boolean soundOn = false;
@@ -100,7 +103,7 @@ public class AudioProcessingUnit {
     
  // Volume shift
     public int chan3InitVolShift = 0;
-    public int chan3VolShift = 0;
+    public int chan3VolShift = 4;
     
  // Playback enable
     public boolean chan3Playback = false;
@@ -333,8 +336,6 @@ public class AudioProcessingUnit {
     }
     
     private void playBuffer() throws UnsupportedAudioFileException, IOException {
-        SourceDataLine line;
-        
         try {
             line = AudioSystem.getSourceDataLine(FORMAT);
             line.open(FORMAT);
@@ -413,5 +414,12 @@ public class AudioProcessingUnit {
 
             bufferClocks -= bufferInterval;
         }
+	}
+	
+	public void setVolume(float volume) {
+		if (volume < 0f || volume > 1f)
+	        throw new IllegalArgumentException("Volume not valid: " + volume);
+		FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);        
+        gainControl.setValue(20f * (float) Math.log10(volume));
 	}
 }

@@ -1,4 +1,4 @@
-package gb;
+package gb.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,20 +13,27 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
+import gb.Main;
+import gb.ppu.PixelProcessingUnit;
+
 public class UserInterface implements ActionListener, KeyListener {
 	
-	public static JFrame frame;
+	JFrame frame;
 	JMenuBar menuBar;
 	JMenu menu;
 	JMenuItem i1;
 	String rom;
 	
+	private static String TITLE = "JGameBoy";
+	
 	public UserInterface() {
         frame = new JFrame();
+        frame.setTitle(TITLE);
+        
         menuBar= new JMenuBar();
         menu = new JMenu("File");  
         i1 = new JMenuItem("ROM");
-        
+                
         frame.addKeyListener(this);
         i1.addActionListener(this);
         
@@ -37,6 +44,10 @@ public class UserInterface implements ActionListener, KeyListener {
 		
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+	
+	public void updateTitle(String str) {
+		frame.setTitle(TITLE + " - " + str);
 	}
 	
 	@Override
@@ -56,16 +67,16 @@ public class UserInterface implements ActionListener, KeyListener {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				Main.start();
+                new Thread(() -> {
+                	Main.start();
+                }).start();
 			}
-//			waitingLoop = false;
 		}
 	}
 
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

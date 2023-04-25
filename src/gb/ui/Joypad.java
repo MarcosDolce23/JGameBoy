@@ -1,5 +1,6 @@
-package gb;
+package gb.ui;
 
+import gb.Main;
 import gb.utils.*;
 
 public class Joypad {
@@ -17,7 +18,7 @@ public class Joypad {
 //	Bit 0 - P10 Input: Right or A        (0=Pressed) (Read Only)
 	
 	private int key;
-	private byte joypadState = (byte) 0xff;
+	private int joypadState = 0xff;
 
 	public void pressButton(int keyCode) {
 		switch(keyCode) {
@@ -53,6 +54,8 @@ public class Joypad {
 			case 10:
 				key = 7;
 			break;
+			default:
+				return;
 		}
 		
 		boolean previouslyUnset = false;
@@ -145,6 +148,8 @@ public class Joypad {
 		case 10:
 			key = 7;
 		break;
+		default:
+			return;
 	}
 		joypadState = BitOperations.bitSet(joypadState, key) ;
 	}
