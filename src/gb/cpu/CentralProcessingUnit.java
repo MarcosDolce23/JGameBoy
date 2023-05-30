@@ -9,7 +9,8 @@ import gb.Main;
 import gb.utils.BitOperations;
 
 
-public class CentralProcessingUnit {
+public final class CentralProcessingUnit {
+	private static CentralProcessingUnit instance;
 	
 	// CPU Timing
     public int cyclesPerSec = 4194304;
@@ -282,7 +283,7 @@ public class CentralProcessingUnit {
 		
 	}
 	
-	public CentralProcessingUnit() {
+	private CentralProcessingUnit() {
 		// Initialize boot values
 		A = 0x01;
 		F = 0xb0;
@@ -299,6 +300,13 @@ public class CentralProcessingUnit {
 		SP = 0xfffe;
 		
 		PC = 0x0100;
+	}
+	
+	public static CentralProcessingUnit getInstance() {
+		if (instance == null) {
+			instance = new CentralProcessingUnit();
+		}
+		return instance;
 	}
 	
 	ActionListener taskPerformer = new ActionListener() {

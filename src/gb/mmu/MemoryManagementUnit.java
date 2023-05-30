@@ -5,6 +5,8 @@ import gb.utils.BitOperations;
 
 public class MemoryManagementUnit {
 	
+	private static MemoryManagementUnit instance;
+
 	public byte[] ram;
 	
 	private boolean enableRam = false;
@@ -470,9 +472,16 @@ public class MemoryManagementUnit {
 		ram[0xff70] = (byte) 0xff;
 	}
 	
-	public MemoryManagementUnit() {
+	private MemoryManagementUnit() {
 		ram = new byte[0x10000]; // No estoy seguro del " + 1" lo agregué porque si escribo en el registro FFFF me da error ya que llega hasta el FFFE. Necesito clarificar este asunto
 		setBootValues();
+	}
+	
+	public static MemoryManagementUnit getInstance() {
+		if (instance == null) {
+			instance = new MemoryManagementUnit();
+		}
+		return instance;
 	}
 	
 	private void handleBanking(int index, int value) {

@@ -22,6 +22,8 @@ public class PixelProcessingUnit extends JPanel {
 	public static int gbwidth = 160; // 160
 	public static int gbheight = 144; // 144
 
+	private static PixelProcessingUnit instance;
+
 	private BufferedImage img = new BufferedImage(gbwidth, gbheight, BufferedImage.TYPE_4BYTE_ABGR);
 	private byte[] pxMap = new byte[gbwidth * gbheight]; // Used to decide what pixel data was drawn
 
@@ -538,8 +540,15 @@ public class PixelProcessingUnit extends JPanel {
 		repaint();
 	}
 	
-	public PixelProcessingUnit() {
+	private PixelProcessingUnit() {
 		setDoubleBuffered(true);
+	}
+	
+	public static PixelProcessingUnit getInstance() {
+		if (instance == null) {
+			instance = new PixelProcessingUnit();
+		}
+		return instance;
 	}
 	
 }

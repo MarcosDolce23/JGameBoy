@@ -13,6 +13,7 @@ import gb.Main;
 import gb.utils.BitOperations;
 
 public class AudioProcessingUnit {
+	private static AudioProcessingUnit instance;
 	
     // Sound buffer configuration
     private static final int SAMPLE_RATE = 44100;
@@ -428,5 +429,14 @@ public class AudioProcessingUnit {
 	        throw new IllegalArgumentException("Volume not valid: " + volume);
 		FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);        
         gainControl.setValue(20f * (float) Math.log10(volume));
+	}
+	
+	private AudioProcessingUnit( ) {}
+	
+	public static AudioProcessingUnit getInstance() {
+		if (instance == null) {
+			instance = new AudioProcessingUnit();
+		}
+		return instance;
 	}
 }

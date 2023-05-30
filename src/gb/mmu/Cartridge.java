@@ -7,6 +7,7 @@ import java.io.IOException;
 import gb.Main;
 
 public class Cartridge {
+	private static Cartridge instance;
 	
 	public String title;
 	public int SCBFlag;
@@ -32,6 +33,15 @@ public class Cartridge {
 //	so if we have an array of size 0x8000 this is enough space for all the RAM banks
 	public byte[] ramBanks = new byte[0x8000];
 	public int ramBankNumber = 0;
+	
+	private Cartridge() {}
+	
+	public static Cartridge getInstance() {
+		if (instance == null) {
+			instance = new Cartridge();
+		}
+		return instance;
+	}
 	
 	public void load(String src) throws IOException {
 		File rom = new File(src);

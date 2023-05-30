@@ -4,6 +4,7 @@ import gb.Main;
 import gb.utils.*;
 
 public class Joypad {
+	private static Joypad instance;
 	
 //	FF00 — P1/JOYP: Joypad
 //	The eight Game Boy action/direction buttons are arranged as a 2x4 matrix. Select either action or direction buttons by writing to this register, then read out the bits 0-3.
@@ -19,6 +20,15 @@ public class Joypad {
 	
 	private int key;
 	private int joypadState = 0xff;
+	
+	private Joypad() {}
+	
+	public static Joypad getInstance() {
+		if (instance == null) {
+			instance = new Joypad();
+		}
+		return instance;
+	}
 
 	public void pressButton(int keyCode) {
 		switch(keyCode) {

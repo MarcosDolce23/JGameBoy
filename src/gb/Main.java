@@ -14,12 +14,17 @@ public class Main {
 	
 	public static int fps = 60;
 	public static UserInterface ui;
-	public static CentralProcessingUnit cpu = new CentralProcessingUnit();
-	public static MemoryManagementUnit mmu = new MemoryManagementUnit();
-	public static PixelProcessingUnit ppu = new PixelProcessingUnit();
-	public static AudioProcessingUnit apu = new AudioProcessingUnit();
-	public static Cartridge cartridge = new Cartridge();
-	public static Joypad joypad = new Joypad();
+	
+	/* I made these classes as a Singleton although it is not necessary since I'm accessing them in a static way.
+	 * I'm trying to learn good practices and design patterns and this is my first approach.
+	 * It may change in the future.
+	 */
+	public static CentralProcessingUnit cpu = CentralProcessingUnit.getInstance();
+	public static MemoryManagementUnit mmu = MemoryManagementUnit.getInstance();
+	public static PixelProcessingUnit ppu = PixelProcessingUnit.getInstance();
+	public static AudioProcessingUnit apu = AudioProcessingUnit.getInstance();
+	public static Cartridge cartridge = Cartridge.getInstance();
+	public static Joypad joypad = Joypad.getInstance();
 	
 	public static void main(String[] args) throws IOException, InterruptedException {
 		
