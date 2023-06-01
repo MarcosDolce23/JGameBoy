@@ -19,6 +19,7 @@ public final class CentralProcessingUnit {
 	public int interval = 0;
 	public int cycles = 0;
 	private int cycled = 0;
+	private int frequency;
 	private Timer timer;
 
 	// CPU Flags
@@ -174,7 +175,7 @@ public final class CentralProcessingUnit {
 		decode(opcode);
 		handleInterrupts();
 
-		handleTimer(cycles);
+		handleTimer();
 		Main.ppu.handleScan(cycles);
 		Main.apu.handleSound(cycles);
 
@@ -220,50 +221,51 @@ public final class CentralProcessingUnit {
 			}
 		}
 	}
-
-	private void handleTimer(int cycles) {
-		// set divider
+	
+	private void setDivider() {
 		divClocksum += cycles;
-
 		if (divClocksum >= 256) {
 			Main.mmu.ram[0xff04]++;
 			divClocksum -= 256;
 		}
+	}
+	
+	private void setFrequency() {
+		frequency = 4096; // Hz
+		if ((Main.mmu.getByte(0xff07) & 0x03) == 0x01) // mask last 2 bits
+			frequency = 262144;
+		else if ((Main.mmu.getByte(0xff07) & 0x03) == 0x02) // mask last 2 bits
+			frequency = 65536;
+		else if ((Main.mmu.getByte(0xff07) & 0x03) == 0x03) // mask last 2 bits
+			frequency = 16384;
+	}
+	
+	private void increaseTIMA() {
+		int aux = Main.mmu.getByte(0xff05); // I set this auxiliar because TIMA will never be greater than 255 beacause will be set to 0 before.
+		Main.mmu.ram[0xff05]++;
+		aux++;
+//		check TIMA for overflow
+		if (aux > 0xff) {
+//			set timer interrupt request
+			Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) | 0x04);
+//			reset timer to timer modulo
+			Main.mmu.setByte(0xff05, Main.mmu.getByte(0xff06));
+		}
+
+		timerClocksum -= (4194304 / frequency);
+	}
+
+	private void handleTimer() {
+		setDivider();
 
 //		check if timer is on
 		if (BitOperations.testBit(Main.mmu.getByte(0xff07), 2)) {
-
-//			set frequency
-			int freq = 4096; // Hz
-			if ((Main.mmu.getByte(0xff07) & 0x03) == 0x01) // mask last 2 bits
-				freq = 262144;
-			else if ((Main.mmu.getByte(0xff07) & 0x03) == 0x02) // mask last 2 bits
-				freq = 65536;
-			else if ((Main.mmu.getByte(0xff07) & 0x03) == 0x03) // mask last 2 bits
-				freq = 16384;
-
+			setFrequency();
 //			increase helper counter
 			timerClocksum += cycles;
-
-//			increment the timer according to the frequency (synched to the processed opcodes)
-			while (timerClocksum >= (4194304 / freq)) {
-
-//				increase TIMA
-//				int res = (Main.mmu.getByte(0xff05) + 1) & 0xff;
-//				Main.mmu.setByte(0xff05, res);
-				int aux = Main.mmu.getByte(0xff05); // I set this auxiliar because TIMA will never be greater than 255
-													// beacause will be set to 0 before.
-				Main.mmu.ram[0xff05]++;
-				aux++;
-//				check TIMA for overflow
-				if (aux > 0xff) {
-//					set timer interrupt request
-					Main.mmu.setByte(0xff0f, Main.mmu.getByte(0xff0f) | 0x04);
-//					reset timer to timer modulo
-					Main.mmu.setByte(0xff05, Main.mmu.getByte(0xff06));
-				}
-
-				timerClocksum -= (4194304 / freq);
+//			Increment the timer according to the frequency (synched to the processed opcodes)
+			while (timerClocksum >= (4194304 / frequency)) {
+				increaseTIMA();
 			}
 		}
 	}
