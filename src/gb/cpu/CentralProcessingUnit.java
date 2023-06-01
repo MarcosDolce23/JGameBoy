@@ -12,6 +12,8 @@ import gb.utils.BitOperations;
 public final class CentralProcessingUnit {
 	private static CentralProcessingUnit instance;
 	
+	Registers regs = new Registers();
+	
 	// CPU Timing
     public int cyclesPerSec = 4194304;
     public int cyclesPerFrame; 
@@ -20,25 +22,6 @@ public final class CentralProcessingUnit {
 	private int cycled = 0;
 	private Timer timer;
 	
-	//CPU registers and flags
-	public int A = 0; // Accumulator
-	public int F = 0; // Flags
-	
-	public int B = 0;
-	public int C = 0;
-	
-	public int D = 0;
-	public int E = 0;
-	
-	public int H = 0;
-	public int L = 0;
-	
-	// Stack Pointer
-	public int SP;
-	
-	// Program Counter/Pointer
-	public int PC;
-	
 	// CPU Flags
 	public boolean IME = false;
 	public boolean HALT = false;
@@ -46,146 +29,6 @@ public final class CentralProcessingUnit {
 
 	private int divClocksum = 0;
 	private int timerClocksum = 0;
-	
-	public int getBC() {
-		return ((B << 8) + C);
-	}
-	
-	public int getDE() {
-		return ((D << 8) + E);
-	}
-	
-	public int getHL() {
-		return ((H << 8) + L);
-	}
-	
-	public int getFlagZ() {
-		return (F & 0x80) >> 7;
-	}
-	
-	public int getFlagN() {
-		return (F & 0x40) >> 6;
-	}
-	
-	public int getFlagH() {
-		return (F & 0x20) >> 5;
-	}
-	
-	public int getFlagC() {
-		return (F & 0x10) >> 4;
-	}
-	
-	public void setFlagZ() {
-		F = BitOperations.bitSet(F, 7); // Set flag Z to 1
-	}
-	
-	public void setFlagN() {
-		F = BitOperations.bitSet(F, 6); // Set flag N to 1
-	}
-	
-	public void setFlagH() {
-		F = BitOperations.bitSet(F, 5); // Set flag H to 1
-	}
-	
-	public void setFlagC() {
-		F = BitOperations.bitSet(F, 4); // Set flag C to 1
-	}
-
-	public void resetFlagZ() {
-		F = BitOperations.bitReset(F, 7); // Set flag Z to 0
-	}
-	
-	public void resetFlagN() {
-		F = BitOperations.bitReset(F, 6); // Set flag N to 0
-	}
-
-	public void resetFlagH() {
-		F = BitOperations.bitReset(F, 5); // Set flag H to 0
-	}
-
-	public void resetFlagC() {
-		F = BitOperations.bitReset(F, 4); // Set flag C to 0
-	}	
-	
-	public void checkHalfCarry8bit(int value1, int value2) {
-		if ((value1 & 0xf) + (value2 & 0xf) > 0xf) {
-			setFlagH();
-		} else {
-			resetFlagH();
-		}
-	}
-	
-	public void checkCarry8bit(int value) {
-		if (value > 0xff) {
-			setFlagC();
-		} else {
-			resetFlagC();
-		}
-	}
-	
-	public void checkHalfCarry16bit(int value1, int value2) {
-		if ((value1 & 0xfff) + (value2 & 0xfff) > 0xfff) {
-			setFlagH();
-		} else {
-			resetFlagH();
-		}
-	}
-	
-	public void checkCarry16bit(int value) {
-		if (value > 0xffff) {
-			setFlagC();
-		} else {
-			resetFlagC();
-		}
-	}
-	
-	public void checkCarry8bitSub(int value1, int value2) {
-		if (value1 < value2) {
-			setFlagC();
-		} else {
-			resetFlagC();
-		}
-	}
-	
-	public void checkHalfCarry8bitSub(int value1, int value2) {
-		if ((value1 & 0xf) < (value2 & 0xf)) {
-			setFlagH();
-		} else {
-			resetFlagH();
-		}
-	}
-	
-	public void checkHalfCarry16bitSub(int value1, int value2) {
-		if ((value1 & 0xff) < (value2 & 0xff)) {
-			setFlagH();
-		} else {
-			resetFlagH();
-		}
-	}
-	
-	public void checkCarry16bitSub(int value1, int value2) {
-		if (value1 < value2) {
-			setFlagC();
-		} else {
-			resetFlagC();
-		}
-	}
-	
-	public void checkZero8bit(int value) {
-		if ((value & 0xff)== 0x00) {
-			setFlagZ();
-		} else {
-			resetFlagZ();
-		}
-	}
-	
-	public void checkZero16bit(int value) {
-		if ((value & 0xffff) == 0x0000) {
-			setFlagZ();
-		} else {
-			resetFlagZ();
-		}
-	}
 	
 //	FFFF — IE: Interrupt enable
 //	
@@ -263,44 +106,7 @@ public final class CentralProcessingUnit {
 		Main.mmu.setByte(0xff0f, BitOperations.bitReset(Main.mmu.getByte(0xff0f), 4));
 	}
 	
-	public int fetch() {
-		int pc = PC;
-		PC += 1;
-		
-		return Main.mmu.getByte(pc);
-	}
-	
-	public int fetchSigned() {
-		int pc = PC;
-		PC += 1;
-		return Main.mmu.getSignedByte(pc);
-	}
-	
-	public int fetchSP() {
-		int sp = SP;
-		SP += 1;
-		return Main.mmu.getByte(sp);
-		
-	}
-	
-	private CentralProcessingUnit() {
-		// Initialize boot values
-		A = 0x01;
-		F = 0xb0;
-		
-		B = 0x00;
-		C = 0x13;
-		
-		D = 0x00;
-		E = 0xd8;
-		
-		H = 0x01;
-		L = 0x4d;
-		
-		SP = 0xfffe;
-		
-		PC = 0x0100;
-	}
+	private CentralProcessingUnit() {}
 	
 	public static CentralProcessingUnit getInstance() {
 		if (instance == null) {
@@ -362,9 +168,9 @@ public final class CentralProcessingUnit {
 		cycles = 0;
 		if (haltBugAtm) {
 			haltBugAtm = false;
-			opcode = Main.mmu.getByte(PC);
+			opcode = Main.mmu.getByte(regs.PC);
 		} else
-			opcode = fetch();
+			opcode = regs.fetch();
 		decode(opcode);
 		handleInterrupts();
 		
@@ -380,11 +186,11 @@ public final class CentralProcessingUnit {
 						
 			//  v-blank interrupt
 			if (getIEVBlank() & getIFVBlank()) {
-				SP -= 1;
-				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
-				SP -= 1;
-				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
-				PC = 0x40;
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, (regs.PC & 0xff00) >> 8); // High byte of PC
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, regs.PC & 0xff); // Low byte of PC
+				regs.PC = 0x40;
 				InstructionSet.DI();
 				resetIFVBlank();
 				cycles += 16; // Add the other cycles beside DI()
@@ -393,11 +199,11 @@ public final class CentralProcessingUnit {
 			
 			// LCD STAT interrupt 
 			if (getIELCDSTAT() & getIFLCDSTAT()) {
-				SP -= 1;
-				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
-				SP -= 1;
-				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
-				PC = 0x48;
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, (regs.PC & 0xff00) >> 8); // High byte of PC
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, regs.PC & 0xff); // Low byte of PC
+				regs.PC = 0x48;
 				InstructionSet.DI();
 				resetIFLCDSTAT();
 				cycles += 16; // Add the other cycles beside DI()
@@ -406,11 +212,11 @@ public final class CentralProcessingUnit {
 			
 			// Timer interrupt
 			if (getIETimer() & getIFTimer()) {
-				SP -= 1;
-				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
-				SP -= 1;
-				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
-				PC = 0x50;
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, (regs.PC & 0xff00) >> 8); // High byte of PC
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, regs.PC & 0xff); // Low byte of PC
+				regs.PC = 0x50;
 				InstructionSet.DI();
 				resetIFTimer();
 				cycles += 16; // Add the other cycles beside DI()
@@ -419,11 +225,11 @@ public final class CentralProcessingUnit {
 			
 			// Serial interrupt
 			if (getIESerial() & getIFSerial()) {
-				SP -= 1;
-				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
-				SP -= 1;
-				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
-				PC = 0x58;
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, (regs.PC & 0xff00) >> 8); // High byte of PC
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, regs.PC & 0xff); // Low byte of PC
+				regs.PC = 0x58;
 				InstructionSet.DI();
 				resetIFSerial();
 				cycles += 16; // Add the other cycles beside DI()
@@ -432,11 +238,11 @@ public final class CentralProcessingUnit {
 			
 			// Joypad interrupt
 			if (getIEJoypad() & getIFJoypad()) {
-				SP -= 1;
-				Main.mmu.setByte(SP, (PC & 0xff00) >> 8); // High byte of PC
-				SP -= 1;
-				Main.mmu.setByte(SP, PC & 0xff); // Low byte of PC
-				PC = 0x60;
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, (regs.PC & 0xff00) >> 8); // High byte of PC
+				regs.SP -= 1;
+				Main.mmu.setByte(regs.SP, regs.PC & 0xff); // Low byte of PC
+				regs.PC = 0x60;
 				InstructionSet.DI();
 				resetIFJoypad();
 				cycles += 16; // Add the other cycles beside DI()
@@ -496,7 +302,7 @@ public final class CentralProcessingUnit {
 	private void decode(int opcode) {
 		// Prefixed (0xCB 0xxx)
 		if (opcode == 0xCB) {
-			opcode = fetch();
+			opcode = regs.fetch();
 			switch(opcode) {
 				case 0:
 					InstructionSet.RLC_B();

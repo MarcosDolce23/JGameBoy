@@ -21,8 +21,8 @@ public class InstructionSet {
 //	3  12
 //	- - - -
 	public static void LD_BC_d16() {
-		Main.cpu.C = Main.cpu.fetch();
-		Main.cpu.B = Main.cpu.fetch();
+		Main.cpu.regs.C = Main.cpu.regs.fetch();
+		Main.cpu.regs.B = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -30,7 +30,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_BC_A() {
-		Main.mmu.setByte(Main.cpu.getBC(), Main.cpu.A);
+		Main.mmu.setByte(Main.cpu.regs.getBC(), Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -38,10 +38,10 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void INC_BC() {
-		int aux = Main.cpu.getBC();
+		int aux = Main.cpu.regs.getBC();
 		aux += 1;
-		Main.cpu.B = ((aux >> 8) & 0xff); // Set high 8 bits
-		Main.cpu.C = (aux & 0xff); // Set low 8 bits
+		Main.cpu.regs.B = ((aux >> 8) & 0xff); // Set high 8 bits
+		Main.cpu.regs.C = (aux & 0xff); // Set low 8 bits
 		Main.cpu.cycles += 8;
 	}
 	
@@ -49,10 +49,10 @@ public class InstructionSet {
 //	1  4
 //	Z 0 H -
 	public static void INC_B() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.B,1); // Check if there is Half Carry before the operation
-		Main.cpu.B = (Main.cpu.B + 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.B);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.B,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.B = (Main.cpu.regs.B + 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.B);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
@@ -60,10 +60,10 @@ public class InstructionSet {
 //	1  4
 //	Z 1 H -
 	public static void DEC_B() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.B,1); // Check if there is Half Carry before the operation
-		Main.cpu.B = (Main.cpu.B - 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.B);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.B,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.B = (Main.cpu.regs.B - 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.B);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
@@ -71,7 +71,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void LD_B_d8() {
-		Main.cpu.B = Main.cpu.fetch();
+		Main.cpu.regs.B = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -79,17 +79,17 @@ public class InstructionSet {
 //	1  4
 //	0 0 0 C
 	public static void RLCA() {
-		Main.cpu.resetFlagZ();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagZ();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.A & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = BitOperations.rotateLeft(Main.cpu.A);
+		Main.cpu.regs.A = BitOperations.rotateLeft(Main.cpu.regs.A);
 		Main.cpu.cycles += 4;
 	}
 	
@@ -97,9 +97,9 @@ public class InstructionSet {
 //	3  20
 //	- - - -
 	public static void LD_a16_SP() {
-		int index = (Main.cpu.fetch() + (Main.cpu.fetch() << 8)) & 0xffff;
-		Main.mmu.setByte(index, Main.cpu.SP & 0xFF);
-		Main.mmu.setByte(index + 1, (Main.cpu.SP >> 8) & 0xff);
+		int index = (Main.cpu.regs.fetch() + (Main.cpu.regs.fetch() << 8)) & 0xffff;
+		Main.mmu.setByte(index, Main.cpu.regs.SP & 0xFF);
+		Main.mmu.setByte(index + 1, (Main.cpu.regs.SP >> 8) & 0xff);
 		Main.cpu.cycles += 20;
 	}
 	
@@ -107,12 +107,12 @@ public class InstructionSet {
 //	1  8
 //	- 0 H C
 	public static void ADD_HL_BC() {
-		Main.cpu.resetFlagN();
-		Main.cpu.checkHalfCarry16bit(Main.cpu.getHL(), Main.cpu.getBC());
-		int res = (Main.cpu.getHL() + Main.cpu.getBC());
-		Main.cpu.checkCarry16bit(res);
-		Main.cpu.L = res & 0xff;
-		Main.cpu.H = (res >> 8) & 0xff;
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.checkHalfCarry16bit(Main.cpu.regs.getHL(), Main.cpu.regs.getBC());
+		int res = (Main.cpu.regs.getHL() + Main.cpu.regs.getBC());
+		Main.cpu.regs.checkCarry16bit(res);
+		Main.cpu.regs.L = res & 0xff;
+		Main.cpu.regs.H = (res >> 8) & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -120,7 +120,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_BC() {
-		Main.cpu.A = Main.mmu.getByte(Main.cpu.getBC());
+		Main.cpu.regs.A = Main.mmu.getByte(Main.cpu.regs.getBC());
 		Main.cpu.cycles += 8;
 	}
 	
@@ -128,10 +128,10 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void DEC_BC() {
-		int aux = Main.cpu.getBC();
+		int aux = Main.cpu.regs.getBC();
 		aux -= 1;
-		Main.cpu.B = ((aux >> 8) & 0xff); // Set high 8 bits
-		Main.cpu.C = (aux & 0xff); // Set low 8 bits
+		Main.cpu.regs.B = ((aux >> 8) & 0xff); // Set high 8 bits
+		Main.cpu.regs.C = (aux & 0xff); // Set low 8 bits
 		Main.cpu.cycles += 8;
 	}
 	
@@ -139,10 +139,10 @@ public class InstructionSet {
 //	1  4
 //	Z 0 H -
 	public static void INC_C() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.C,1); // Check if there is Half Carry before the operation
-		Main.cpu.C = (Main.cpu.C + 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.C);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.C,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.C = (Main.cpu.regs.C + 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.C);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
@@ -150,10 +150,10 @@ public class InstructionSet {
 //	1  4
 //	Z 1 H -
 	public static void DEC_C() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.C,1); // Check if there is Half Carry before the operation
-		Main.cpu.C = (Main.cpu.C - 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.C);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.C,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.C = (Main.cpu.regs.C - 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.C);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
@@ -161,7 +161,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void LD_C_d8() {
-		Main.cpu.C = Main.cpu.fetch();
+		Main.cpu.regs.C = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -169,17 +169,17 @@ public class InstructionSet {
 //	1  4
 //	0 0 0 C
 	public static void RRCA() {
-		Main.cpu.resetFlagZ();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagZ();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.A & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = BitOperations.rotateRight(Main.cpu.A);
+		Main.cpu.regs.A = BitOperations.rotateRight(Main.cpu.regs.A);
 		Main.cpu.cycles += 4;
 	}
 	
@@ -194,8 +194,8 @@ public class InstructionSet {
 //	3  12
 //	- - - -
 	public static void LD_DE_d16() {
-		Main.cpu.E = Main.cpu.fetch();
-		Main.cpu.D = Main.cpu.fetch();
+		Main.cpu.regs.E = Main.cpu.regs.fetch();
+		Main.cpu.regs.D = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -203,7 +203,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_DE_A() {
-		Main.mmu.setByte(Main.cpu.getDE(), Main.cpu.A);
+		Main.mmu.setByte(Main.cpu.regs.getDE(), Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -211,10 +211,10 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void INC_DE() {
-		int aux = Main.cpu.getDE();
+		int aux = Main.cpu.regs.getDE();
 		aux += 1;
-		Main.cpu.D = ((aux >> 8) & 0xff); // Set high 8 bits
-		Main.cpu.E = (aux & 0xff); // Set low 8 bits
+		Main.cpu.regs.D = ((aux >> 8) & 0xff); // Set high 8 bits
+		Main.cpu.regs.E = (aux & 0xff); // Set low 8 bits
 		Main.cpu.cycles += 8;
 	}
 	
@@ -222,10 +222,10 @@ public class InstructionSet {
 //	1  4
 //	Z 0 H -
 	public static void INC_D() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.D,1); // Check if there is Half Carry before the operation
-		Main.cpu.D = (Main.cpu.D + 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.D);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.D,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.D = (Main.cpu.regs.D + 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.D);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -233,10 +233,10 @@ public class InstructionSet {
 //	1  4
 //	Z 1 H -
 	public static void DEC_D() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.D,1); // Check if there is Half Carry before the operation
-		Main.cpu.D = (Main.cpu.D - 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.D);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.D,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.D = (Main.cpu.regs.D - 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.D);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
@@ -244,7 +244,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void LD_D_d8() {
-		Main.cpu.D = Main.cpu.fetch();
+		Main.cpu.regs.D = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -252,21 +252,21 @@ public class InstructionSet {
 //	1  4
 //	0 0 0 C
 	public static void RLA() {
-		Main.cpu.resetFlagZ();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagZ();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 		
 		// Set carry flag
-		if ((Main.cpu.A & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = (Main.cpu.A << 1) & 0xff; // Rotate to the right
-		Main.cpu.A |= c;
+		Main.cpu.regs.A = (Main.cpu.regs.A << 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.A |= c;
 		Main.cpu.cycles += 4;
 	}
 
@@ -274,8 +274,8 @@ public class InstructionSet {
 //	2  12
 //	- - - -
 	public static void JR_s8() {
-		int s8 = Main.cpu.fetchSigned();
-		Main.cpu.PC = (Main.cpu.PC + s8) & 0xffff;
+		int s8 = Main.cpu.regs.fetchSigned();
+		Main.cpu.regs.PC = (Main.cpu.regs.PC + s8) & 0xffff;
 		Main.cpu.cycles += 12;
 	}
 	
@@ -283,12 +283,12 @@ public class InstructionSet {
 //	1  8
 //	- 0 H C
 	public static void ADD_HL_DE() {
-		Main.cpu.resetFlagN();
-		Main.cpu.checkHalfCarry16bit(Main.cpu.getHL(), Main.cpu.getDE());
-		int res = (Main.cpu.getHL() + Main.cpu.getDE());
-		Main.cpu.checkCarry16bit(res);
-		Main.cpu.L = res & 0xff;
-		Main.cpu.H = (res >> 8) & 0xff;
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.checkHalfCarry16bit(Main.cpu.regs.getHL(), Main.cpu.regs.getDE());
+		int res = (Main.cpu.regs.getHL() + Main.cpu.regs.getDE());
+		Main.cpu.regs.checkCarry16bit(res);
+		Main.cpu.regs.L = res & 0xff;
+		Main.cpu.regs.H = (res >> 8) & 0xff;
 		Main.cpu.cycles += 8;
 	}
 
@@ -296,7 +296,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_DE() {
-		Main.cpu.A = Main.mmu.getByte(Main.cpu.getDE());
+		Main.cpu.regs.A = Main.mmu.getByte(Main.cpu.regs.getDE());
 		Main.cpu.cycles += 8;
 	}
 
@@ -304,10 +304,10 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void DEC_DE() {
-		int aux = Main.cpu.getDE();
+		int aux = Main.cpu.regs.getDE();
 		aux -= 1;
-		Main.cpu.D = ((aux >> 8) & 0xff); // Set high 8 bits
-		Main.cpu.E = (aux & 0xff); // Set low 8 bits
+		Main.cpu.regs.D = ((aux >> 8) & 0xff); // Set high 8 bits
+		Main.cpu.regs.E = (aux & 0xff); // Set low 8 bits
 		Main.cpu.cycles += 8;
 	}
 
@@ -315,10 +315,10 @@ public class InstructionSet {
 //	1  4
 //	Z 0 H -
 	public static void INC_E() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.E,1); // Check if there is Half Carry before the operation
-		Main.cpu.E = (Main.cpu.E + 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.E);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.E,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.E = (Main.cpu.regs.E + 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.E);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -326,10 +326,10 @@ public class InstructionSet {
 //	1  4
 //	Z 1 H -
 	public static void DEC_E() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.E,1); // Check if there is Half Carry before the operation
-		Main.cpu.E = (Main.cpu.E - 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.E);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.E,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.E = (Main.cpu.regs.E - 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.E);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -337,7 +337,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void LD_E_d8() {
-		Main.cpu.E = Main.cpu.fetch();
+		Main.cpu.regs.E = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -345,21 +345,21 @@ public class InstructionSet {
 //	1  4
 //	0 0 0 C
 	public static void RRA() {
-		Main.cpu.resetFlagZ();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagZ();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.cpu.A & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = (Main.cpu.A >> 1) & 0xff; // Rotate to the right
-		Main.cpu.A |= c;
+		Main.cpu.regs.A = (Main.cpu.regs.A >> 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.A |= c;
 		Main.cpu.cycles += 4;
 	}
 	
@@ -368,10 +368,10 @@ public class InstructionSet {
 //	2  12/8
 //	- - - -
 	public static void JR_NZ_s8() {
-		if (Main.cpu.getFlagZ() == 0) {
+		if (Main.cpu.regs.getFlagZ() == 0) {
 			JR_s8();
 		} else {
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 8;
 		}
 	}
@@ -380,8 +380,8 @@ public class InstructionSet {
 //	3  12
 //	- - - -
 	public static void LD_HL_d16() {
-		Main.cpu.L = Main.cpu.fetch();
-		Main.cpu.H = Main.cpu.fetch();
+		Main.cpu.regs.L = Main.cpu.regs.fetch();
+		Main.cpu.regs.H = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 12;
 	}
 
@@ -389,13 +389,13 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_HLinc_A() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.A);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.A);
 		
 		// TO DO: que pasa cuando incremento enteros paso los 8 bits y luego los paso a la mem?
 		// en principio parece no generar problemas.
-		int aux  = Main.cpu.getHL() + 1;
-		Main.cpu.L = aux & 0xFF; // Set the lower 8 bits
-		Main.cpu.H = (aux >> 8) & 0xff; // Set the higher 8 bits
+		int aux  = Main.cpu.regs.getHL() + 1;
+		Main.cpu.regs.L = aux & 0xFF; // Set the lower 8 bits
+		Main.cpu.regs.H = (aux >> 8) & 0xff; // Set the higher 8 bits
 		Main.cpu.cycles += 8;
 	}
 
@@ -403,10 +403,10 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void INC_HL() {
-		int aux = Main.cpu.getHL();
+		int aux = Main.cpu.regs.getHL();
 		aux += 1;
-		Main.cpu.H = ((aux >> 8) & 0xff); // Set high 8 bits
-		Main.cpu.L = (aux & 0xff); // Set low 8 bits
+		Main.cpu.regs.H = ((aux >> 8) & 0xff); // Set high 8 bits
+		Main.cpu.regs.L = (aux & 0xff); // Set low 8 bits
 		Main.cpu.cycles += 8;
 	}
 
@@ -414,10 +414,10 @@ public class InstructionSet {
 //	1  4
 //	Z 0 H -
 	public static void INC_H() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.H,1); // Check if there is Half Carry before the operation
-		Main.cpu.H = (Main.cpu.H + 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.H);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.H,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.H = (Main.cpu.regs.H + 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.H);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -425,10 +425,10 @@ public class InstructionSet {
 //	1  4
 //	Z 1 H -
 	public static void DEC_H() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.H,1); // Check if there is Half Carry before the operation
-		Main.cpu.H = (Main.cpu.H - 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.H);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.H,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.H = (Main.cpu.regs.H - 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.H);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -436,7 +436,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void LD_H_d8() {
-		Main.cpu.H = Main.cpu.fetch();
+		Main.cpu.regs.H = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -445,34 +445,34 @@ public class InstructionSet {
 //	Z - 0 C
 	public static void DAA() {
 		// note: assumes a is a uint8_t and wraps from 0xff to 0
-		if (Main.cpu.getFlagN() == 0) {  // after an addition, adjust if (half-)carry occurred or if result is out of bounds
+		if (Main.cpu.regs.getFlagN() == 0) {  // after an addition, adjust if (half-)carry occurred or if result is out of bounds
 		  
-			if ((Main.cpu.getFlagC() == 1) || (Main.cpu.A > 0x99)) {
-			  Main.cpu.A += 0x60;
-			  Main.cpu.setFlagC();
+			if ((Main.cpu.regs.getFlagC() == 1) || (Main.cpu.regs.A > 0x99)) {
+			  Main.cpu.regs.A += 0x60;
+			  Main.cpu.regs.setFlagC();
 		  }
 		  
-		  if ((Main.cpu.getFlagH() == 1) || ((Main.cpu.A & 0x0f) > 0x09)) {
-			  Main.cpu.A += 0x6; 
+		  if ((Main.cpu.regs.getFlagH() == 1) || ((Main.cpu.regs.A & 0x0f) > 0x09)) {
+			  Main.cpu.regs.A += 0x6; 
 		  }
 		
 		} else {  // after a subtraction, only adjust if (half-)carry occurred
 			
-			if (Main.cpu.getFlagC() == 1) {
-				Main.cpu.A -= 0x60;
+			if (Main.cpu.regs.getFlagC() == 1) {
+				Main.cpu.regs.A -= 0x60;
 			}
 			
-			if (Main.cpu.getFlagH() == 1) {
-				Main.cpu.A -= 0x6;
+			if (Main.cpu.regs.getFlagH() == 1) {
+				Main.cpu.regs.A -= 0x6;
 			}
 			
 		}
 		
-		Main.cpu.A &= 0xff;
+		Main.cpu.regs.A &= 0xff;
 		
 		// these flags are always updated
-		Main.cpu.checkZero8bit(Main.cpu.A);; // the usual z flag
-		Main.cpu.resetFlagH(); // h flag is always cleared
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);; // the usual z flag
+		Main.cpu.regs.resetFlagH(); // h flag is always cleared
 		
 		Main.cpu.cycles += 4;
 	}
@@ -481,10 +481,10 @@ public class InstructionSet {
 //	2  12/8
 //	- - - -
 	public static void JR_Z_s8() {
-		if (Main.cpu.getFlagZ() == 1) {
+		if (Main.cpu.regs.getFlagZ() == 1) {
 			JR_s8();
 		} else {
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 8;
 		}
 	}
@@ -493,12 +493,12 @@ public class InstructionSet {
 //	1  8
 //	- 0 H C
 	public static void ADD_HL_HL() {
-		Main.cpu.resetFlagN();
-		Main.cpu.checkHalfCarry16bit(Main.cpu.getHL(), Main.cpu.getHL());
-		int res = (Main.cpu.getHL() + Main.cpu.getHL());
-		Main.cpu.checkCarry16bit(res);
-		Main.cpu.L = res & 0xff;
-		Main.cpu.H = (res >> 8) & 0xff;
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.checkHalfCarry16bit(Main.cpu.regs.getHL(), Main.cpu.regs.getHL());
+		int res = (Main.cpu.regs.getHL() + Main.cpu.regs.getHL());
+		Main.cpu.regs.checkCarry16bit(res);
+		Main.cpu.regs.L = res & 0xff;
+		Main.cpu.regs.H = (res >> 8) & 0xff;
 		Main.cpu.cycles += 8;
 	}
 
@@ -506,10 +506,10 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_HLinc() {
-		Main.cpu.A = Main.mmu.getByte(Main.cpu.getHL());
-		int aux  = Main.cpu.getHL() + 1;
-		Main.cpu.L = aux & 0xFF; // Set the lower 8 bits
-		Main.cpu.H = (aux >> 8) & 0xff; // Set the higher 8 bits
+		Main.cpu.regs.A = Main.mmu.getByte(Main.cpu.regs.getHL());
+		int aux  = Main.cpu.regs.getHL() + 1;
+		Main.cpu.regs.L = aux & 0xFF; // Set the lower 8 bits
+		Main.cpu.regs.H = (aux >> 8) & 0xff; // Set the higher 8 bits
 		Main.cpu.cycles += 8;
 	}
 
@@ -517,10 +517,10 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void DEC_HL() {
-		int aux = Main.cpu.getHL();
+		int aux = Main.cpu.regs.getHL();
 		aux -= 1;
-		Main.cpu.H = ((aux >> 8) & 0xff); // Set high 8 bits
-		Main.cpu.L = (aux & 0xff); // Set low 8 bits
+		Main.cpu.regs.H = ((aux >> 8) & 0xff); // Set high 8 bits
+		Main.cpu.regs.L = (aux & 0xff); // Set low 8 bits
 		Main.cpu.cycles += 8;
 	}
 
@@ -528,10 +528,10 @@ public class InstructionSet {
 //	1  4
 //	Z 0 H -
 	public static void INC_L() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.L,1); // Check if there is Half Carry before the operation
-		Main.cpu.L = (Main.cpu.L + 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.L);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.L,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.L = (Main.cpu.regs.L + 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.L);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -539,10 +539,10 @@ public class InstructionSet {
 //	1  4
 //	Z 1 H -
 	public static void DEC_L() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.L,1); // Check if there is Half Carry before the operation
-		Main.cpu.L = (Main.cpu.L - 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.L);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.L,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.L = (Main.cpu.regs.L - 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.L);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -550,7 +550,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void LD_L_d8() {
-		Main.cpu.L = Main.cpu.fetch();
+		Main.cpu.regs.L = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -558,9 +558,9 @@ public class InstructionSet {
 //	1  4
 //	- 1 1 -
 	public static void CPL() {
-		Main.cpu.setFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.A = (~Main.cpu.A) & 0xff;
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.A = (~Main.cpu.regs.A) & 0xff;
 		Main.cpu.cycles += 4;
 	}
 
@@ -568,10 +568,10 @@ public class InstructionSet {
 //	2  12/8
 //	- - - -
 	public static void JR_NC_s8() {
-		if (Main.cpu.getFlagC() == 0) {
+		if (Main.cpu.regs.getFlagC() == 0) {
 			JR_s8();
 		} else {
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 8;
 		}
 	}
@@ -580,8 +580,8 @@ public class InstructionSet {
 //	3  12
 //	- - - -
 	public static void LD_SP_d16() {
-		int value = Main.cpu.fetch() + (Main.cpu.fetch() << 8);
-		Main.cpu.SP = value & 0xffff;
+		int value = Main.cpu.regs.fetch() + (Main.cpu.regs.fetch() << 8);
+		Main.cpu.regs.SP = value & 0xffff;
 		Main.cpu.cycles += 12;
 	}
 
@@ -589,13 +589,13 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_HLdec_A() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.A);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.A);
 		
 		// TO DO: que pasa cuando decremento enteros y luego los paso a la mem?
 		// en principio parece no generar problemas.
-		int aux  = Main.cpu.getHL() - 1;
-		Main.cpu.L = aux & 0xFF; // Set the lower 8 bits
-		Main.cpu.H = (aux >> 8) & 0xff; // Set the higher 8 bits
+		int aux  = Main.cpu.regs.getHL() - 1;
+		Main.cpu.regs.L = aux & 0xFF; // Set the lower 8 bits
+		Main.cpu.regs.H = (aux >> 8) & 0xff; // Set the higher 8 bits
 		Main.cpu.cycles += 8;
 	}
 
@@ -603,7 +603,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void INC_SP() {
-		Main.cpu.SP += 1;
+		Main.cpu.regs.SP += 1;
 		Main.cpu.cycles += 8;
 	}
 
@@ -611,10 +611,10 @@ public class InstructionSet {
 //	1  12
 //	Z 0 H -
 	public static void INC_HLmem() {
-		Main.cpu.checkHalfCarry8bit(Main.mmu.getByte(Main.cpu.getHL()),1); // Check if there is Half Carry before the operation
-		Main.mmu.setByte(Main.cpu.getHL(), (Main.mmu.getByte(Main.cpu.getHL()) + 1) & 0xff);
-		Main.cpu.checkZero8bit(Main.mmu.getByte(Main.cpu.getHL()));
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.mmu.getByte(Main.cpu.regs.getHL()),1); // Check if there is Half Carry before the operation
+		Main.mmu.setByte(Main.cpu.regs.getHL(), (Main.mmu.getByte(Main.cpu.regs.getHL()) + 1) & 0xff);
+		Main.cpu.regs.checkZero8bit(Main.mmu.getByte(Main.cpu.regs.getHL()));
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 12;
 	}
 
@@ -622,10 +622,10 @@ public class InstructionSet {
 //	1  12
 //	Z 1 H -
 	public static void DEC_HLmem() {
-		Main.cpu.checkHalfCarry8bitSub(Main.mmu.getByte(Main.cpu.getHL()),1); // Check if there is Half Carry before the operation
-		Main.mmu.setByte(Main.cpu.getHL(), (Main.mmu.getByte(Main.cpu.getHL()) - 1) & 0xff);
-		Main.cpu.checkZero8bit(Main.mmu.getByte(Main.cpu.getHL()));
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.mmu.getByte(Main.cpu.regs.getHL()),1); // Check if there is Half Carry before the operation
+		Main.mmu.setByte(Main.cpu.regs.getHL(), (Main.mmu.getByte(Main.cpu.regs.getHL()) - 1) & 0xff);
+		Main.cpu.regs.checkZero8bit(Main.mmu.getByte(Main.cpu.regs.getHL()));
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 12;
 	}
 
@@ -633,7 +633,7 @@ public class InstructionSet {
 //	2  12
 //	- - - -
 	public static void LD_HL_d8() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.fetch());
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.fetch());
 		Main.cpu.cycles += 12;
 	}
 	
@@ -641,9 +641,9 @@ public class InstructionSet {
 //	1  4
 //	- 0 0 1
 	public static void SCF() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.setFlagC();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.setFlagC();
 		Main.cpu.cycles += 4;
 	}
 
@@ -651,10 +651,10 @@ public class InstructionSet {
 //	2  12/8
 //	- - - -
 	public static void JR_C_s8() {
-		if (Main.cpu.getFlagC() == 1) {
+		if (Main.cpu.regs.getFlagC() == 1) {
 			JR_s8();
 		} else {
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 8;
 		}
 	}
@@ -663,12 +663,12 @@ public class InstructionSet {
 //	1  8
 //	- 0 H C
 	public static void ADD_HL_SP() {
-		Main.cpu.resetFlagN();
-		int res = Main.cpu.getHL() + Main.cpu.SP;
-		Main.cpu.checkHalfCarry16bit(Main.cpu.getHL(), Main.cpu.SP);
-		Main.cpu.checkCarry16bit(res);
-		Main.cpu.L = res & 0xff;
-		Main.cpu.H = (res >> 8) & 0xff;
+		Main.cpu.regs.resetFlagN();
+		int res = Main.cpu.regs.getHL() + Main.cpu.regs.SP;
+		Main.cpu.regs.checkHalfCarry16bit(Main.cpu.regs.getHL(), Main.cpu.regs.SP);
+		Main.cpu.regs.checkCarry16bit(res);
+		Main.cpu.regs.L = res & 0xff;
+		Main.cpu.regs.H = (res >> 8) & 0xff;
 		Main.cpu.cycles += 8;
 	}
 
@@ -676,10 +676,10 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_HLdec() {
-		Main.cpu.A = Main.mmu.getByte(Main.cpu.getHL());
-		int aux  = Main.cpu.getHL() - 1;
-		Main.cpu.L = aux & 0xFF; // Set the lower 8 bits
-		Main.cpu.H = (aux >> 8) & 0xff; // Set the higher 8 bits
+		Main.cpu.regs.A = Main.mmu.getByte(Main.cpu.regs.getHL());
+		int aux  = Main.cpu.regs.getHL() - 1;
+		Main.cpu.regs.L = aux & 0xFF; // Set the lower 8 bits
+		Main.cpu.regs.H = (aux >> 8) & 0xff; // Set the higher 8 bits
 		Main.cpu.cycles += 8;
 	}
 
@@ -687,7 +687,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void DEC_SP() {
-		Main.cpu.SP -= 1;
+		Main.cpu.regs.SP -= 1;
 		Main.cpu.cycles += 8;
 	}
 
@@ -695,10 +695,10 @@ public class InstructionSet {
 //	1  4
 //	Z 0 H -
 	public static void INC_A() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A,1); // Check if there is Half Carry before the operation
-		Main.cpu.A = (Main.cpu.A + 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.A = (Main.cpu.regs.A + 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -706,10 +706,10 @@ public class InstructionSet {
 //	1  4
 //	Z 1 H -
 	public static void DEC_A() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A,1); // Check if there is Half Carry before the operation
-		Main.cpu.A = (Main.cpu.A - 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A,1); // Check if there is Half Carry before the operation
+		Main.cpu.regs.A = (Main.cpu.regs.A - 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 
@@ -717,7 +717,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void LD_A_d8() {
-		Main.cpu.A = Main.cpu.fetch();
+		Main.cpu.regs.A = Main.cpu.regs.fetch();
 		Main.cpu.cycles += 8;
 	}
 
@@ -725,12 +725,12 @@ public class InstructionSet {
 //	1  4
 //	- 0 0 C
 	public static void CFF() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		if (Main.cpu.getFlagC() == 0) {
-			Main.cpu.setFlagC();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		if (Main.cpu.regs.getFlagC() == 0) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		Main.cpu.cycles += 4;
 	}
@@ -742,49 +742,49 @@ public class InstructionSet {
 	
 //	LD B, C
 	public static void LD_B_C() {
-		Main.cpu.B = Main.cpu.C;
+		Main.cpu.regs.B = Main.cpu.regs.C;
 		Main.cpu.cycles += 4;
 	}
 
 //	LD B, D
 	public static void LD_B_D() {
-		Main.cpu.B = Main.cpu.D;
+		Main.cpu.regs.B = Main.cpu.regs.D;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD B, E
 	public static void LD_B_E() {
-		Main.cpu.B = Main.cpu.E;
+		Main.cpu.regs.B = Main.cpu.regs.E;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD B, H
 	public static void LD_B_H() {
-		Main.cpu.B = Main.cpu.H;
+		Main.cpu.regs.B = Main.cpu.regs.H;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD B, L
 	public static void LD_B_L() {
-		Main.cpu.B = Main.cpu.L;
+		Main.cpu.regs.B = Main.cpu.regs.L;
 		Main.cpu.cycles += 4;
 	}
 
 //	 LD B, (HL)
 	public static void LD_B_HL() {
-		Main.cpu.B = Main.mmu.getByte(Main.cpu.getHL());
+		Main.cpu.regs.B = Main.mmu.getByte(Main.cpu.regs.getHL());
 		Main.cpu.cycles += 8;
 	}
 
 //	LD B, A
 	public static void LD_B_A() {
-		Main.cpu.B = Main.cpu.A;
+		Main.cpu.regs.B = Main.cpu.regs.A;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD C, B
 	public static void LD_C_B() {
-		Main.cpu.C = Main.cpu.B;
+		Main.cpu.regs.C = Main.cpu.regs.B;
 		Main.cpu.cycles += 4;
 	}
 	
@@ -795,49 +795,49 @@ public class InstructionSet {
 	
 //	LD C, D
 	public static void LD_C_D() {
-		Main.cpu.C = Main.cpu.D;
+		Main.cpu.regs.C = Main.cpu.regs.D;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD C, E
 	public static void LD_C_E() {
-		Main.cpu.C = Main.cpu.E;
+		Main.cpu.regs.C = Main.cpu.regs.E;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD C, H
 	public static void LD_C_H() {
-		Main.cpu.C = Main.cpu.H;
+		Main.cpu.regs.C = Main.cpu.regs.H;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD C, L
 	public static void LD_C_L() {
-		Main.cpu.C = Main.cpu.L;
+		Main.cpu.regs.C = Main.cpu.regs.L;
 		Main.cpu.cycles += 4;
 	}
 	
 //	 LD C, (HL)
 	public static void LD_C_HL() {
-		Main.cpu.C = Main.mmu.getByte(Main.cpu.getHL());
+		Main.cpu.regs.C = Main.mmu.getByte(Main.cpu.regs.getHL());
 		Main.cpu.cycles += 8;
 	}
 
 //	LD C, A
 	public static void LD_C_A() {
-		Main.cpu.C = Main.cpu.A;
+		Main.cpu.regs.C = Main.cpu.regs.A;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD D, B
 	public static void LD_D_B() {
-		Main.cpu.D = Main.cpu.B;
+		Main.cpu.regs.D = Main.cpu.regs.B;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD D, C
 	public static void LD_D_C() {
-		Main.cpu.D = Main.cpu.C;
+		Main.cpu.regs.D = Main.cpu.regs.C;
 		Main.cpu.cycles += 4;
 	}
 	
@@ -848,49 +848,49 @@ public class InstructionSet {
 	
 //	LD D, E
 	public static void LD_D_E() {
-		Main.cpu.D = Main.cpu.E;
+		Main.cpu.regs.D = Main.cpu.regs.E;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD D, H
 	public static void LD_D_H() {
-		Main.cpu.D = Main.cpu.H;
+		Main.cpu.regs.D = Main.cpu.regs.H;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD D, L
 	public static void LD_D_L() {
-		Main.cpu.D = Main.cpu.L;
+		Main.cpu.regs.D = Main.cpu.regs.L;
 		Main.cpu.cycles += 4;
 	}
 
 //	LD D, (HL)
 	public static void LD_D_HL() {
-		Main.cpu.D = Main.mmu.getByte(Main.cpu.getHL());
+		Main.cpu.regs.D = Main.mmu.getByte(Main.cpu.regs.getHL());
 		Main.cpu.cycles += 8;
 	}
 
 //	LD D, A
 	public static void LD_D_A() {
-		Main.cpu.D = Main.cpu.A;
+		Main.cpu.regs.D = Main.cpu.regs.A;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD E, B
 	public static void LD_E_B() {
-		Main.cpu.E = Main.cpu.B;
+		Main.cpu.regs.E = Main.cpu.regs.B;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD E, C
 	public static void LD_E_C() {
-		Main.cpu.E = Main.cpu.C;
+		Main.cpu.regs.E = Main.cpu.regs.C;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD E, D
 	public static void LD_E_D() {
-		Main.cpu.E = Main.cpu.D;
+		Main.cpu.regs.E = Main.cpu.regs.D;
 		Main.cpu.cycles += 4;
 	}
 	
@@ -901,49 +901,49 @@ public class InstructionSet {
 	
 //	LD E, H
 	public static void LD_E_H() {
-		Main.cpu.E = Main.cpu.H;
+		Main.cpu.regs.E = Main.cpu.regs.H;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD E, L
 	public static void LD_E_L() {
-		Main.cpu.E = Main.cpu.L;
+		Main.cpu.regs.E = Main.cpu.regs.L;
 		Main.cpu.cycles += 4;
 	}
 
 //	LD E, (HL)
 	public static void LD_E_HL() {
-		Main.cpu.E = Main.mmu.getByte(Main.cpu.getHL());
+		Main.cpu.regs.E = Main.mmu.getByte(Main.cpu.regs.getHL());
 		Main.cpu.cycles += 8;
 	}
 
 //	LD E, A
 	public static void LD_E_A() {
-		Main.cpu.E = Main.cpu.A;
+		Main.cpu.regs.E = Main.cpu.regs.A;
 		Main.cpu.cycles += 4;
 	}
 		
 //	LD H, B
 	public static void LD_H_B() {
-		Main.cpu.H = Main.cpu.B;
+		Main.cpu.regs.H = Main.cpu.regs.B;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD H, C
 	public static void LD_H_C() {
-		Main.cpu.H = Main.cpu.C;
+		Main.cpu.regs.H = Main.cpu.regs.C;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD H, D
 	public static void LD_H_D() {
-		Main.cpu.H = Main.cpu.D;
+		Main.cpu.regs.H = Main.cpu.regs.D;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD H, E
 	public static void LD_H_E() {
-		Main.cpu.H = Main.cpu.E;
+		Main.cpu.regs.H = Main.cpu.regs.E;
 		Main.cpu.cycles += 4;
 	}
 	
@@ -954,49 +954,49 @@ public class InstructionSet {
 	
 //	LD H, L
 	public static void LD_H_L() {
-		Main.cpu.H = Main.cpu.L;
+		Main.cpu.regs.H = Main.cpu.regs.L;
 		Main.cpu.cycles += 4;
 	}
 
 //	LD H, (HL)
 	public static void LD_H_HL() {
-		Main.cpu.H = Main.mmu.getByte(Main.cpu.getHL());
+		Main.cpu.regs.H = Main.mmu.getByte(Main.cpu.regs.getHL());
 		Main.cpu.cycles += 8;
 	}
 
 //	LD H, A
 	public static void LD_H_A() {
-		Main.cpu.H = Main.cpu.A;
+		Main.cpu.regs.H = Main.cpu.regs.A;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD L, B
 	public static void LD_L_B() {
-		Main.cpu.L = Main.cpu.B;
+		Main.cpu.regs.L = Main.cpu.regs.B;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD L, C
 	public static void LD_L_C() {
-		Main.cpu.L = Main.cpu.C;
+		Main.cpu.regs.L = Main.cpu.regs.C;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD L, D
 	public static void LD_L_D() {
-		Main.cpu.L = Main.cpu.D;
+		Main.cpu.regs.L = Main.cpu.regs.D;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD L, E
 	public static void LD_L_E() {
-		Main.cpu.L = Main.cpu.E;
+		Main.cpu.regs.L = Main.cpu.regs.E;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD L, H
 	public static void LD_L_H() {
-		Main.cpu.L = Main.cpu.H;
+		Main.cpu.regs.L = Main.cpu.regs.H;
 		Main.cpu.cycles += 4;
 	}
 	
@@ -1007,49 +1007,49 @@ public class InstructionSet {
 
 //	LD L, (HL)
 	public static void LD_L_HL() {
-		Main.cpu.L = Main.mmu.getByte(Main.cpu.getHL());
+		Main.cpu.regs.L = Main.mmu.getByte(Main.cpu.regs.getHL());
 		Main.cpu.cycles += 8;
 	}
 
 //	LD L, A
 	public static void LD_L_A() {
-		Main.cpu.L = Main.cpu.A;
+		Main.cpu.regs.L = Main.cpu.regs.A;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD (HL), B
 	public static void LD_HL_B() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.B);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.B);
 		Main.cpu.cycles += 8;
 	}
 	
 //	LD (HL), C
 	public static void LD_HL_C() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.C);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.C);
 		Main.cpu.cycles += 8;
 	}
 	
 //	LD (HL), D
 	public static void LD_HL_D() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.D);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.D);
 		Main.cpu.cycles += 8;
 	}
 	
 //	LD (HL), E
 	public static void LD_HL_E() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.E);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.E);
 		Main.cpu.cycles += 8;
 	}
 	
 //	LD (HL), H
 	public static void LD_HL_H() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.H);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.H);
 		Main.cpu.cycles += 8;
 	}
 	
 //	LD (HL), L
 	public static void LD_HL_L() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.L);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.L);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -1067,8 +1067,8 @@ public class InstructionSet {
         else {
             Main.cpu.HALT = true;
 
-            Main.cpu.PC--;
-            Main.cpu.PC &= 0xffff;
+            Main.cpu.regs.PC--;
+            Main.cpu.regs.PC &= 0xffff;
         }
         
 		Main.cpu.cycles += 4;
@@ -1076,49 +1076,49 @@ public class InstructionSet {
 	
 //	LD (HL), A
 	public static void LD_HL_A() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.cpu.A);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 
 //	LD A, B
 	public static void LD_A_B() {
-		Main.cpu.A = Main.cpu.B;
+		Main.cpu.regs.A = Main.cpu.regs.B;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD A, C
 	public static void LD_A_C() {
-		Main.cpu.A = Main.cpu.C;
+		Main.cpu.regs.A = Main.cpu.regs.C;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD A, D
 	public static void LD_A_D() {
-		Main.cpu.A = Main.cpu.D;
+		Main.cpu.regs.A = Main.cpu.regs.D;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD A, E
 	public static void LD_A_E() {
-		Main.cpu.A = Main.cpu.E;
+		Main.cpu.regs.A = Main.cpu.regs.E;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD A, H
 	public static void LD_A_H() {
-		Main.cpu.A = Main.cpu.H;
+		Main.cpu.regs.A = Main.cpu.regs.H;
 		Main.cpu.cycles += 4;
 	}
 	
 //	LD A, L
 	public static void LD_A_L() {
-		Main.cpu.A = Main.cpu.L;
+		Main.cpu.regs.A = Main.cpu.regs.L;
 		Main.cpu.cycles += 4;
 	}
 
 //	LD A, (HL)
 	public static void LD_A_HL() {
-		Main.cpu.A = Main.mmu.getByte(Main.cpu.getHL());
+		Main.cpu.regs.A = Main.mmu.getByte(Main.cpu.regs.getHL());
 		Main.cpu.cycles += 8;
 	}
 	
@@ -1130,833 +1130,833 @@ public class InstructionSet {
 //	ADD A, B
 //	Z 0 H C
 	public static void ADD_A_B() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, Main.cpu.B);
-		Main.cpu.checkCarry8bit(Main.cpu.A + Main.cpu.B);
-		Main.cpu.A = (Main.cpu.A + Main.cpu.B) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, Main.cpu.regs.B);
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + Main.cpu.regs.B);
+		Main.cpu.regs.A = (Main.cpu.regs.A + Main.cpu.regs.B) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADD A, C
 //	Z 0 H C
 	public static void ADD_A_C() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, Main.cpu.C);
-		Main.cpu.checkCarry8bit(Main.cpu.A + Main.cpu.C);
-		Main.cpu.A = (Main.cpu.A + Main.cpu.C) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, Main.cpu.regs.C);
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + Main.cpu.regs.C);
+		Main.cpu.regs.A = (Main.cpu.regs.A + Main.cpu.regs.C) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADD A, D
 //	Z 0 H C
 	public static void ADD_A_D() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, Main.cpu.D);
-		Main.cpu.checkCarry8bit(Main.cpu.A + Main.cpu.D);
-		Main.cpu.A = (Main.cpu.A + Main.cpu.D) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, Main.cpu.regs.D);
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + Main.cpu.regs.D);
+		Main.cpu.regs.A = (Main.cpu.regs.A + Main.cpu.regs.D) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADD A, E
 //	Z 0 H C
 	public static void ADD_A_E() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, Main.cpu.E);
-		Main.cpu.checkCarry8bit(Main.cpu.A + Main.cpu.E);
-		Main.cpu.A = (Main.cpu.A + Main.cpu.E) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, Main.cpu.regs.E);
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + Main.cpu.regs.E);
+		Main.cpu.regs.A = (Main.cpu.regs.A + Main.cpu.regs.E) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADD A, H
 //	Z 0 H C
 	public static void ADD_A_H() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, Main.cpu.H);
-		Main.cpu.checkCarry8bit(Main.cpu.A + Main.cpu.H);
-		Main.cpu.A = (Main.cpu.A + Main.cpu.H) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, Main.cpu.regs.H);
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + Main.cpu.regs.H);
+		Main.cpu.regs.A = (Main.cpu.regs.A + Main.cpu.regs.H) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADD A, L
 //	Z 0 H C
 	public static void ADD_A_L() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, Main.cpu.L);
-		Main.cpu.checkCarry8bit(Main.cpu.A + Main.cpu.L);
-		Main.cpu.A = (Main.cpu.A + Main.cpu.L) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, Main.cpu.regs.L);
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + Main.cpu.regs.L);
+		Main.cpu.regs.A = (Main.cpu.regs.A + Main.cpu.regs.L) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADD A, (HL)
 //	Z 0 H C
 	public static void ADD_A_HL() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, Main.mmu.getByte(Main.cpu.getHL()));
-		Main.cpu.checkCarry8bit(Main.cpu.A + Main.mmu.getByte(Main.cpu.getHL()));
-		Main.cpu.A = (Main.cpu.A + Main.mmu.getByte(Main.cpu.getHL())) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, Main.mmu.getByte(Main.cpu.regs.getHL()));
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + Main.mmu.getByte(Main.cpu.regs.getHL()));
+		Main.cpu.regs.A = (Main.cpu.regs.A + Main.mmu.getByte(Main.cpu.regs.getHL())) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 8;
 	}
 
 //	ADD A, A
 //	Z 0 H C
 	public static void ADD_A_A() {
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, Main.cpu.A);
-		Main.cpu.checkCarry8bit(Main.cpu.A + Main.cpu.A);
-		Main.cpu.A = (Main.cpu.A + Main.cpu.A) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, Main.cpu.regs.A);
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + Main.cpu.regs.A);
+		Main.cpu.regs.A = (Main.cpu.regs.A + Main.cpu.regs.A) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADC A, B
 //	Z 0 H C
 	public static void ADC_A_B() {
-		int val = Main.cpu.B + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.B + Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (Main.cpu.B & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (Main.cpu.regs.B & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADC A, C
 //	Z 0 H C
 	public static void ADC_A_C() {
-		int val = Main.cpu.C + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.C + Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (Main.cpu.C & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (Main.cpu.regs.C & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADC A, D
 //	Z 0 H C
 	public static void ADC_A_D() {
-		int val = Main.cpu.D + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.D + Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (Main.cpu.D & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (Main.cpu.regs.D & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADC A, E
 //	Z 0 H C
 	public static void ADC_A_E() {
-		int val = Main.cpu.E + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.E + Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (Main.cpu.E & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (Main.cpu.regs.E & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADC A, H
 //	Z 0 H C
 	public static void ADC_A_H() {
-		int val = Main.cpu.H + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.H + Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (Main.cpu.H & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (Main.cpu.regs.H & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADC A, L
 //	Z 0 H C
 	public static void ADC_A_L() {
-		int val = Main.cpu.L+ Main.cpu.getFlagC();
+		int val = Main.cpu.regs.L+ Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (Main.cpu.L & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (Main.cpu.regs.L & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	ADC A, (HL)
 //	Z 0 H C
 	public static void ADC_A_HL() {
-		int val = Main.mmu.getByte(Main.cpu.getHL()) + Main.cpu.getFlagC();
+		int val = Main.mmu.getByte(Main.cpu.regs.getHL()) + Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (Main.mmu.getByte(Main.cpu.getHL()) & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 8;
 	}
 
 //	ADC A, A
 //	Z 0 H C
 	public static void ADC_A_A() {
-		int val = Main.cpu.A + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.A + Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (Main.cpu.A & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (Main.cpu.regs.A & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	SUB B
 //	Z 1 H C
 	public static void SUB_A_B() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.B);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.B);
-		Main.cpu.A = (Main.cpu.A - Main.cpu.B) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.B);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.B);
+		Main.cpu.regs.A = (Main.cpu.regs.A - Main.cpu.regs.B) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	SUB C
 //	Z 1 H C
 	public static void SUB_A_C() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.C);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.C);
-		Main.cpu.A = (Main.cpu.A - Main.cpu.C) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.C);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.C);
+		Main.cpu.regs.A = (Main.cpu.regs.A - Main.cpu.regs.C) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	SUB D
 //	Z 1 H C
 	public static void SUB_A_D() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.D);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.D);
-		Main.cpu.A = (Main.cpu.A - Main.cpu.D) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.D);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.D);
+		Main.cpu.regs.A = (Main.cpu.regs.A - Main.cpu.regs.D) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	SUB E
 //	Z 1 H C
 	public static void SUB_A_E() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.E);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.E);
-		Main.cpu.A = (Main.cpu.A - Main.cpu.E) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.E);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.E);
+		Main.cpu.regs.A = (Main.cpu.regs.A - Main.cpu.regs.E) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	SUB H
 //	Z 1 H C
 	public static void SUB_A_H() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.H);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.H);
-		Main.cpu.A = (Main.cpu.A - Main.cpu.H) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.H);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.H);
+		Main.cpu.regs.A = (Main.cpu.regs.A - Main.cpu.regs.H) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	SUB L
 //	Z 1 H C
 	public static void SUB_A_L() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.L);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.L);
-		Main.cpu.A = (Main.cpu.A - Main.cpu.L) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.L);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.L);
+		Main.cpu.regs.A = (Main.cpu.regs.A - Main.cpu.regs.L) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 4;
 	}
 	
 //	SUB (HL)
 //	Z 1 H C
 	public static void SUB_A_HL() {
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.mmu.getByte(Main.cpu.getHL()));
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.mmu.getByte(Main.cpu.getHL()));
-		Main.cpu.A = (Main.cpu.A - Main.mmu.getByte(Main.cpu.getHL())) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.mmu.getByte(Main.cpu.regs.getHL()));
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.mmu.getByte(Main.cpu.regs.getHL()));
+		Main.cpu.regs.A = (Main.cpu.regs.A - Main.mmu.getByte(Main.cpu.regs.getHL())) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 8;
 	}
 	
 //	SUB A
 //	1 1 0 0
 	public static void SUB_A_A() {
-		Main.cpu.A = (Main.cpu.A - Main.cpu.A) & 0xff;
-		Main.cpu.setFlagZ();
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = (Main.cpu.regs.A - Main.cpu.regs.A) & 0xff;
+		Main.cpu.regs.setFlagZ();
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	SBC A, B
 //	Z 1 H C
 	public static void SBC_A_B() {
-		int val = Main.cpu.B + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.B + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((Main.cpu.B & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((Main.cpu.regs.B & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	SBC A, C
 //	Z 1 H C
 	public static void SBC_A_C() {
-		int val = Main.cpu.C + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.C + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((Main.cpu.C & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((Main.cpu.regs.C & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	SBC A, D
 //	Z 1 H C
 	public static void SBC_A_D() {
-		int val = Main.cpu.D + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.D + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((Main.cpu.D & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((Main.cpu.regs.D & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	SBC A, E
 //	Z 1 H C
 	public static void SBC_A_E() {
-		int val = Main.cpu.E + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.E + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((Main.cpu.E & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((Main.cpu.regs.E & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	SBC A, H
 //	Z 1 H C
 	public static void SBC_A_H() {
-		int val = Main.cpu.H + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.H + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((Main.cpu.H & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((Main.cpu.regs.H & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	SBC A, L
 //	Z 1 H C
 	public static void SBC_A_L() {
-		int val = Main.cpu.L + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.L + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((Main.cpu.L & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((Main.cpu.regs.L & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}
 	
 //	SBC A, (HL)
 //	Z 1 H C
 	public static void SBC_A_HL() {
-		int val = Main.mmu.getByte(Main.cpu.getHL()) + Main.cpu.getFlagC();
+		int val = Main.mmu.getByte(Main.cpu.regs.getHL()) + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((Main.mmu.getByte(Main.cpu.getHL()) & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 8;
 	}
 	
 //	SBC A, A
 //	Z 1 H -
 	public static void SBC_A_A() {
-		int val = Main.cpu.A + Main.cpu.getFlagC();
+		int val = Main.cpu.regs.A + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((Main.cpu.A & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((Main.cpu.regs.A & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 4;
 	}	
 	
 //	 AND B
 //	 Z 0 1 0
 	public static void AND_B() {
-		Main.cpu.A = Main.cpu.A & Main.cpu.B;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.cpu.regs.B;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}	
 	
 //	 AND C
 //	 Z 0 1 0
 	public static void AND_C() {
-		Main.cpu.A = Main.cpu.A & Main.cpu.C;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.cpu.regs.C;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	 AND D
 //	 Z 0 1 0
 	public static void AND_D() {
-		Main.cpu.A = Main.cpu.A & Main.cpu.D;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.cpu.regs.D;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	AND E
 //	Z 0 1 0
 	public static void AND_E() {
-		Main.cpu.A = Main.cpu.A & Main.cpu.E;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.cpu.regs.E;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	AND H
 //	Z 0 1 0
 	public static void AND_H() {
-		Main.cpu.A = Main.cpu.A & Main.cpu.H;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.cpu.regs.H;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	AND L
 //	Z 0 1 0
 	public static void AND_L() {
-		Main.cpu.A = Main.cpu.A & Main.cpu.L;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.cpu.regs.L;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	AND (HL)
 //	Z 0 1 0
 	public static void AND_HL() {
-		Main.cpu.A = Main.cpu.A & Main.mmu.getByte(Main.cpu.getHL());
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.mmu.getByte(Main.cpu.regs.getHL());
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 8;
 	}
 	
 //	AND A
 //	Z 0 1 0
 	public static void AND_A() {
-		Main.cpu.A = Main.cpu.A & Main.cpu.A;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.cpu.regs.A;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	XOR B
 //	Z 0 0 0
 	public static void XOR_B() {
-		Main.cpu.A = Main.cpu.A ^ Main.cpu.B;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.cpu.regs.B;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	XOR C
 //	Z 0 0 0
 	public static void XOR_C() {
-		Main.cpu.A = Main.cpu.A ^ Main.cpu.C;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.cpu.regs.C;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 
 //	XOR D
 //	Z 0 0 0
 	public static void XOR_D() {
-		Main.cpu.A = Main.cpu.A ^ Main.cpu.D;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.cpu.regs.D;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	XOR E
 //	Z 0 0 0
 	public static void XOR_E() {
-		Main.cpu.A = Main.cpu.A ^ Main.cpu.E;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.cpu.regs.E;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	XOR H
 //	Z 0 0 0
 	public static void XOR_H() {
-		Main.cpu.A = Main.cpu.A ^ Main.cpu.H;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.cpu.regs.H;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	XOR L
 //	Z 0 0 0
 	public static void XOR_L() {
-		Main.cpu.A = Main.cpu.A ^ Main.cpu.L;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.cpu.regs.L;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	XOR (HL)
 //	Z 0 0 0
 	public static void XOR_HL() {
-		Main.cpu.A = Main.cpu.A ^ Main.mmu.getByte(Main.cpu.getHL());
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.mmu.getByte(Main.cpu.regs.getHL());
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 8;
 	}
 	
 //	XOR A
 //	1 0 0 0
 	public static void XOR_A() {
-		Main.cpu.A = Main.cpu.A ^ Main.cpu.A;
-		Main.cpu.setFlagZ();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.cpu.regs.A;
+		Main.cpu.regs.setFlagZ();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	OR B
 //	Z 0 0 0
 	public static void OR_B() {
-		Main.cpu.A = Main.cpu.A | Main.cpu.B;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.cpu.regs.B;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	OR C
 //	Z 0 0 0
 	public static void OR_C() {
-		Main.cpu.A = Main.cpu.A | Main.cpu.C;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.cpu.regs.C;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	OR D
 //	Z 0 0 0
 	public static void OR_D() {
-		Main.cpu.A = Main.cpu.A | Main.cpu.D;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.cpu.regs.D;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	OR E
 //	Z 0 0 0
 	public static void OR_E() {
-		Main.cpu.A = Main.cpu.A | Main.cpu.E;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.cpu.regs.E;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	OR H
 //	Z 0 0 0
 	public static void OR_H() {
-		Main.cpu.A = Main.cpu.A | Main.cpu.H;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.cpu.regs.H;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	OR L
 //	Z 0 0 0
 	public static void OR_L() {
-		Main.cpu.A = Main.cpu.A | Main.cpu.L;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.cpu.regs.L;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
 //	OR (HL)
 //	Z 0 0 0
 	public static void OR_HL() {
-		Main.cpu.A = Main.cpu.A | Main.mmu.getByte(Main.cpu.getHL());
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.mmu.getByte(Main.cpu.regs.getHL());
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 8;
 	}
 	
 //	OR A
 //	Z 0 0 0
 	public static void OR_A() {
-		Main.cpu.A = Main.cpu.A | Main.cpu.A;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.cpu.regs.A;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 
 //	CP B
 //	Z 1 H C
 	public static void CP_B() {
-		Main.cpu.checkZero8bit(Main.cpu.A - Main.cpu.B);
-		Main.cpu.setFlagN();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.B);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.B);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A - Main.cpu.regs.B);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.B);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.B);
 		Main.cpu.cycles += 4;
 	}
 
 //	CP C
 //	Z 1 H C
 	public static void CP_C() {
-		Main.cpu.checkZero8bit(Main.cpu.A - Main.cpu.C);
-		Main.cpu.setFlagN();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.C);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.C);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A - Main.cpu.regs.C);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.C);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.C);
 		Main.cpu.cycles += 4;
 	}
 	
 //	CP D
 //	Z 1 H C
 	public static void CP_D() {
-		Main.cpu.checkZero8bit(Main.cpu.A - Main.cpu.D);
-		Main.cpu.setFlagN();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.D);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.D);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A - Main.cpu.regs.D);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.D);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.D);
 		Main.cpu.cycles += 4;
 	}
 	
 //	CP E
 //	Z 1 H C
 	public static void CP_E() {
-		Main.cpu.checkZero8bit(Main.cpu.A - Main.cpu.E);
-		Main.cpu.setFlagN();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.E);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.E);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A - Main.cpu.regs.E);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.E);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.E);
 		Main.cpu.cycles += 4;
 	}
 	
 //	CP H
 //	Z 1 H C
 	public static void CP_H() {
-		Main.cpu.checkZero8bit(Main.cpu.A - Main.cpu.H);
-		Main.cpu.setFlagN();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.H);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.H);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A - Main.cpu.regs.H);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.H);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.H);
 		Main.cpu.cycles += 4;
 	}
 	
 //	CP L
 //	Z 1 H C
 	public static void CP_L() {
-		Main.cpu.checkZero8bit(Main.cpu.A - Main.cpu.L);
-		Main.cpu.setFlagN();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.cpu.L);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.cpu.L);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A - Main.cpu.regs.L);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.L);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.cpu.regs.L);
 		Main.cpu.cycles += 4;
 	}
 	
 //	CP (HL)
 //	Z 1 H C
 	public static void CP_HL() {
-		Main.cpu.checkZero8bit(Main.cpu.A - Main.mmu.getByte(Main.cpu.getHL()));
-		Main.cpu.setFlagN();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, Main.mmu.getByte(Main.cpu.getHL()));
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, Main.mmu.getByte(Main.cpu.getHL()));
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A - Main.mmu.getByte(Main.cpu.regs.getHL()));
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, Main.mmu.getByte(Main.cpu.regs.getHL()));
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, Main.mmu.getByte(Main.cpu.regs.getHL()));
 		Main.cpu.cycles += 8;
 	}
 	
 //	CP A
 //	1 1 0 0
 	public static void CP_A() {
-		Main.cpu.setFlagZ();
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.setFlagZ();
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 4;
 	}
 	
@@ -1964,7 +1964,7 @@ public class InstructionSet {
 //	1  20/8
 //	- - - -
 	public static void RET_NZ() {
-		if (Main.cpu.getFlagZ() == 0) {
+		if (Main.cpu.regs.getFlagZ() == 0) {
 			RET();
 			Main.cpu.cycles += 4;
 		} else {
@@ -1976,10 +1976,10 @@ public class InstructionSet {
 //	1  12
 //	- - - -
 	public static void POP_BC() {
-		Main.cpu.C = Main.mmu.getByte(Main.cpu.SP);
-		Main.cpu.SP += 1;
-		Main.cpu.B = Main.mmu.getByte(Main.cpu.SP);
-		Main.cpu.SP += 1;
+		Main.cpu.regs.C = Main.mmu.getByte(Main.cpu.regs.SP);
+		Main.cpu.regs.SP += 1;
+		Main.cpu.regs.B = Main.mmu.getByte(Main.cpu.regs.SP);
+		Main.cpu.regs.SP += 1;
 		Main.cpu.cycles += 12;
 	}
 	
@@ -1987,11 +1987,11 @@ public class InstructionSet {
 //	3  16/12
 //	- - - -
 	public static void JP_NZ_a16() {
-		if (Main.cpu.getFlagZ() == 0) {
+		if (Main.cpu.regs.getFlagZ() == 0) {
 			JP_a16();
 		} else {
-			Main.cpu.fetch();
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 12;
 		}
 	}
@@ -2000,10 +2000,10 @@ public class InstructionSet {
 //	3  16
 //	- - - -
 	public static void JP_a16() {
-		int l = Main.cpu.fetch();
-		int h = Main.cpu.fetch();
+		int l = Main.cpu.regs.fetch();
+		int h = Main.cpu.regs.fetch();
 		int res = (h << 8) + l;
-		Main.cpu.PC = res & 0xffff;
+		Main.cpu.regs.PC = res & 0xffff;
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2011,11 +2011,11 @@ public class InstructionSet {
 //	3  24/12
 //	- - - -
 	public static void CALL_NZ_a16( ) {
-		if (Main.cpu.getFlagZ() == 0) {
+		if (Main.cpu.regs.getFlagZ() == 0) {
 			CALL_a16();
 		} else {
-			Main.cpu.fetch();
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 12;
 		}
 	}
@@ -2024,10 +2024,10 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void PUSH_BC() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.B);
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.C);
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.B);
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.C);
 		Main.cpu.cycles += 16;
 	}
 
@@ -2035,12 +2035,12 @@ public class InstructionSet {
 //	2  8
 //	Z 0 H C
 	public static void ADD_A_d8() {
-		int d8 = Main.cpu.fetch();
-		Main.cpu.checkHalfCarry8bit(Main.cpu.A, d8);
-		Main.cpu.checkCarry8bit(Main.cpu.A + d8);
-		Main.cpu.A = (Main.cpu.A + d8) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
+		int d8 = Main.cpu.regs.fetch();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.A, d8);
+		Main.cpu.regs.checkCarry8bit(Main.cpu.regs.A + d8);
+		Main.cpu.regs.A = (Main.cpu.regs.A + d8) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2048,12 +2048,12 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RST_0() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-//		Main.cpu.PC = Main.mmu.getByte(0x00);
-		Main.cpu.PC = 0x0000;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+//		Main.cpu.regs.PC = Main.mmu.getByte(0x00);
+		Main.cpu.regs.PC = 0x0000;
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2061,7 +2061,7 @@ public class InstructionSet {
 //	1  20/8
 //	- - - -
 	public static void RET_Z() {
-		if (Main.cpu.getFlagZ() == 1) {
+		if (Main.cpu.regs.getFlagZ() == 1) {
 			RET();
 			Main.cpu.cycles += 4;
 		} else {
@@ -2073,10 +2073,10 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RET() {
-		int l = Main.cpu.fetchSP();
-		int h = Main.cpu.fetchSP();
+		int l = Main.cpu.regs.fetchSP();
+		int h = Main.cpu.regs.fetchSP();
 		int res = (h << 8) + l;
-		Main.cpu.PC = res & 0xffff;
+		Main.cpu.regs.PC = res & 0xffff;
 		Main.cpu.cycles += 16;
 	}
 
@@ -2084,11 +2084,11 @@ public class InstructionSet {
 //	3  16/12
 //	- - - -
 	public static void JP_Z_a16() {
-		if (Main.cpu.getFlagZ() == 1) {
+		if (Main.cpu.regs.getFlagZ() == 1) {
 			JP_a16();
 		} else {
-			Main.cpu.fetch();
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 12;
 		}
 	}
@@ -2097,11 +2097,11 @@ public class InstructionSet {
 //	3  24/12
 //	- - - -
 	public static void CALL_Z_a16( ) {
-		if (Main.cpu.getFlagZ() == 1) {
+		if (Main.cpu.regs.getFlagZ() == 1) {
 			CALL_a16();
 		} else {
-			Main.cpu.fetch();
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 12;
 		}
 	}
@@ -2110,14 +2110,14 @@ public class InstructionSet {
 //	3  24
 //	- - - -
 	public static void CALL_a16() {
-		int l = Main.cpu.fetch();
-		int h = Main.cpu.fetch();
+		int l = Main.cpu.regs.fetch();
+		int h = Main.cpu.regs.fetch();
 		int res = (h << 8) + l;
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-		Main.cpu.PC = res & 0xffff;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+		Main.cpu.regs.PC = res & 0xffff;
 		Main.cpu.cycles += 24;
 	}
 	
@@ -2125,21 +2125,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 H C
 	public static void ADC_A_d8() {
-		int d8 = Main.cpu.fetch();
-		int val = d8 + Main.cpu.getFlagC();
+		int d8 = Main.cpu.regs.fetch();
+		int val = d8 + Main.cpu.regs.getFlagC();
 		
-		int sum = Main.cpu.A + val;
+		int sum = Main.cpu.regs.A + val;
 		int res = sum & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagN();
-		if ((Main.cpu.A & 0xf) + (d8 & 0xf) + Main.cpu.getFlagC() > 0xf) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		if ((Main.cpu.regs.A & 0xf) + (d8 & 0xf) + Main.cpu.regs.getFlagC() > 0xf) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bit(sum);
+		Main.cpu.regs.checkCarry8bit(sum);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2147,12 +2147,12 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RST_1() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-//		Main.cpu.PC = Main.mmu.getByte(0x08);
-		Main.cpu.PC = 0x0008;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+//		Main.cpu.regs.PC = Main.mmu.getByte(0x08);
+		Main.cpu.regs.PC = 0x0008;
 		Main.cpu.cycles += 16;
 	}
 
@@ -2160,7 +2160,7 @@ public class InstructionSet {
 //	1  20/8
 //	- - - -
 	public static void RET_NC() {
-		if (Main.cpu.getFlagC() == 0) {
+		if (Main.cpu.regs.getFlagC() == 0) {
 			RET();
 			Main.cpu.cycles += 4;
 		} else {
@@ -2172,10 +2172,10 @@ public class InstructionSet {
 //	1  12
 //	- - - -
 	public static void POP_DE() {
-		Main.cpu.E = Main.mmu.getByte(Main.cpu.SP);
-		Main.cpu.SP += 1;
-		Main.cpu.D = Main.mmu.getByte(Main.cpu.SP);
-		Main.cpu.SP += 1;
+		Main.cpu.regs.E = Main.mmu.getByte(Main.cpu.regs.SP);
+		Main.cpu.regs.SP += 1;
+		Main.cpu.regs.D = Main.mmu.getByte(Main.cpu.regs.SP);
+		Main.cpu.regs.SP += 1;
 		Main.cpu.cycles += 12;
 	}
 
@@ -2183,11 +2183,11 @@ public class InstructionSet {
 //	3  16/12
 //	- - - -
 	public static void JP_NC_a16() {
-		if (Main.cpu.getFlagC() == 0) {
+		if (Main.cpu.regs.getFlagC() == 0) {
 			JP_a16();
 		} else {
-			Main.cpu.fetch();
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 12;
 		}
 	}
@@ -2196,11 +2196,11 @@ public class InstructionSet {
 //	3  24/12
 //	- - - -
 	public static void CALL_NC_a16( ) {
-		if (Main.cpu.getFlagC() == 0) {
+		if (Main.cpu.regs.getFlagC() == 0) {
 			CALL_a16();
 		} else {
-			Main.cpu.fetch();
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 12;
 		}
 	}
@@ -2209,10 +2209,10 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void PUSH_DE() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.D);
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.E);
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.D);
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.E);
 		Main.cpu.cycles += 16;
 	}
 
@@ -2220,12 +2220,12 @@ public class InstructionSet {
 //	2  8
 //	Z 1 H C
 	public static void SUB_A_d8() {
-		int d8 = Main.cpu.fetch();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, d8);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, d8);
-		Main.cpu.A = (Main.cpu.A - d8) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.setFlagN();
+		int d8 = Main.cpu.regs.fetch();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, d8);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, d8);
+		Main.cpu.regs.A = (Main.cpu.regs.A - d8) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.setFlagN();
 		Main.cpu.cycles += 8;
 	}
 
@@ -2233,12 +2233,12 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RST_2() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-		Main.cpu.PC = Main.mmu.getByte(0x10);
-		Main.cpu.PC = 0x0010;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+		Main.cpu.regs.PC = Main.mmu.getByte(0x10);
+		Main.cpu.regs.PC = 0x0010;
 		Main.cpu.cycles += 16;
 	}
 
@@ -2246,7 +2246,7 @@ public class InstructionSet {
 //	1  20/8
 //	- - - -
 	public static void RET_C() {
-		if (Main.cpu.getFlagC() == 1) {
+		if (Main.cpu.regs.getFlagC() == 1) {
 			RET();
 			Main.cpu.cycles += 4;
 		} else  {
@@ -2258,12 +2258,12 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RETI() {
-		int l = Main.cpu.fetchSP();
-		int h = Main.cpu.fetchSP();
+		int l = Main.cpu.regs.fetchSP();
+		int h = Main.cpu.regs.fetchSP();
 		int res = (h << 8) + l;
 		
 		Main.cpu.IME = true;
-		Main.cpu.PC = res & 0xffff;
+		Main.cpu.regs.PC = res & 0xffff;
 		Main.cpu.cycles += 16;
 	}
 
@@ -2271,11 +2271,11 @@ public class InstructionSet {
 //	3  16/12
 //	- - - -
 	public static void JP_C_a16() {
-		if (Main.cpu.getFlagC() == 1) {
+		if (Main.cpu.regs.getFlagC() == 1) {
 			JP_a16();
 		} else {
-			Main.cpu.fetch();
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 12;
 		}
 	}
@@ -2284,11 +2284,11 @@ public class InstructionSet {
 //	3  24/12
 //	- - - -
 	public static void CALL_C_a16( ) {
-		if (Main.cpu.getFlagC() == 1) {
+		if (Main.cpu.regs.getFlagC() == 1) {
 			CALL_a16();
 		} else {
-			Main.cpu.fetch();
-			Main.cpu.fetch();
+			Main.cpu.regs.fetch();
+			Main.cpu.regs.fetch();
 			Main.cpu.cycles += 12;
 		}
 	}
@@ -2297,20 +2297,20 @@ public class InstructionSet {
 //	2  8
 //	Z 1 H C
 	public static void SBC_A_d8() {
-		int d8 = Main.cpu.fetch();
-		int val = d8 + Main.cpu.getFlagC();
+		int d8 = Main.cpu.regs.fetch();
+		int val = d8 + Main.cpu.regs.getFlagC();
 		
-		int res = (Main.cpu.A - val) & 0xff;
+		int res = (Main.cpu.regs.A - val) & 0xff;
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.setFlagN();
-		Main.cpu.resetFlagH();
-		if ((Main.cpu.A & 0xf) < ((d8 & 0xf) + Main.cpu.getFlagC())) {
-			Main.cpu.setFlagH();
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.resetFlagH();
+		if ((Main.cpu.regs.A & 0xf) < ((d8 & 0xf) + Main.cpu.regs.getFlagC())) {
+			Main.cpu.regs.setFlagH();
 		}
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, val);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, val);
 
-		Main.cpu.A = res;
+		Main.cpu.regs.A = res;
 		Main.cpu.cycles += 8;
 	}	
 
@@ -2318,12 +2318,12 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RST_3() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-//		Main.cpu.PC = Main.mmu.getByte(0x18);
-		Main.cpu.PC = 0x0018;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+//		Main.cpu.regs.PC = Main.mmu.getByte(0x18);
+		Main.cpu.regs.PC = 0x0018;
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2333,7 +2333,7 @@ public class InstructionSet {
 //	- - - -
 	public static void LD_a8_A() {
 		// Debe guardar el contenido del reg A en 0xFF(a8)
-		Main.mmu.setByte(0xFF00 | Main.cpu.fetch(), Main.cpu.A);
+		Main.mmu.setByte(0xFF00 | Main.cpu.regs.fetch(), Main.cpu.regs.A);
 		Main.cpu.cycles += 12;
 	}
 
@@ -2341,10 +2341,10 @@ public class InstructionSet {
 //	1  12
 //	- - - -
 	public static void POP_HL() {
-		Main.cpu.L = Main.mmu.getByte(Main.cpu.SP);
-		Main.cpu.SP += 1;
-		Main.cpu.H = Main.mmu.getByte(Main.cpu.SP);
-		Main.cpu.SP += 1;
+		Main.cpu.regs.L = Main.mmu.getByte(Main.cpu.regs.SP);
+		Main.cpu.regs.SP += 1;
+		Main.cpu.regs.H = Main.mmu.getByte(Main.cpu.regs.SP);
+		Main.cpu.regs.SP += 1;
 		Main.cpu.cycles += 12;
 	}
 	
@@ -2352,7 +2352,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_Cmem_A() {
-		Main.mmu.setByte(0xff00 | Main.cpu.C, Main.cpu.A);
+		Main.mmu.setByte(0xff00 | Main.cpu.regs.C, Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 
@@ -2360,10 +2360,10 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void PUSH_HL() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.H);
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.L);
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.H);
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.L);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2371,11 +2371,11 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 0
 	public static void AND_d8() {
-		Main.cpu.A = Main.cpu.A & Main.cpu.fetch();
-		Main.cpu.checkZero8bit(Main.cpu.A);
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.A = Main.cpu.regs.A & Main.cpu.regs.fetch();
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
+		Main.cpu.regs.resetFlagC();
 		Main.cpu.cycles += 8;
 	}
 
@@ -2383,12 +2383,12 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RST_4() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-//		Main.cpu.PC = Main.mmu.getByte(0x20);
-		Main.cpu.PC = 0x0020;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+//		Main.cpu.regs.PC = Main.mmu.getByte(0x20);
+		Main.cpu.regs.PC = 0x0020;
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2396,20 +2396,20 @@ public class InstructionSet {
 //	2  16
 //	0 0 H C
 	public static void ADD_SP_s8() {
-		Main.cpu.resetFlagZ();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.resetFlagZ();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagC();
 		
-		int s8 = Main.cpu.fetchSigned();
-		int sum = Main.cpu.SP + s8;
+		int s8 = Main.cpu.regs.fetchSigned();
+		int sum = Main.cpu.regs.SP + s8;
 		
-		Main.cpu.checkHalfCarry8bit(Main.cpu.SP, s8);
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.SP, s8);
 
-		if ((sum & 0xff) < (Main.cpu.SP & 0xff)) {
-			Main.cpu.setFlagC();
+		if ((sum & 0xff) < (Main.cpu.regs.SP & 0xff)) {
+			Main.cpu.regs.setFlagC();
 		}
 		
-		Main.cpu.SP = sum & 0xffff;
+		Main.cpu.regs.SP = sum & 0xffff;
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2417,8 +2417,8 @@ public class InstructionSet {
 //	1  4
 //	- - - -
 	public static void JP_HL() {
-		int res = (Main.cpu.H << 8) + Main.cpu.L;
-		Main.cpu.PC = res & 0xffff;
+		int res = (Main.cpu.regs.H << 8) + Main.cpu.regs.L;
+		Main.cpu.regs.PC = res & 0xffff;
 		Main.cpu.cycles += 4;
 	}
 	
@@ -2426,8 +2426,8 @@ public class InstructionSet {
 //	3  16
 //	- - - -
 	public static void LD_a16_A() {
-		int index = (Main.cpu.fetch() + (Main.cpu.fetch() << 8)) & 0xffff;
-		Main.mmu.setByte(index, Main.cpu.A);
+		int index = (Main.cpu.regs.fetch() + (Main.cpu.regs.fetch() << 8)) & 0xffff;
+		Main.mmu.setByte(index, Main.cpu.regs.A);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2435,11 +2435,11 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void XOR_d8() {
-		Main.cpu.A = Main.cpu.A ^ Main.cpu.fetch();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.A = Main.cpu.regs.A ^ Main.cpu.regs.fetch();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 
@@ -2447,12 +2447,12 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RST_5() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-//		Main.cpu.PC = Main.mmu.getByte(0x28);
-		Main.cpu.PC = 0x0028;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+//		Main.cpu.regs.PC = Main.mmu.getByte(0x28);
+		Main.cpu.regs.PC = 0x0028;
 		Main.cpu.cycles += 16;
 	}
 
@@ -2460,7 +2460,7 @@ public class InstructionSet {
 //	2  12
 //	- - - -
 	public static void LD_A_a8() {
-		Main.cpu.A = Main.mmu.getByte(0xff00 | Main.cpu.fetch());
+		Main.cpu.regs.A = Main.mmu.getByte(0xff00 | Main.cpu.regs.fetch());
 		Main.cpu.cycles += 12;
 	}
 
@@ -2468,10 +2468,10 @@ public class InstructionSet {
 //	1  12
 //	Z N H C
 	public static void POP_AF() {
-		Main.cpu.F = Main.mmu.getByte(Main.cpu.SP) & 0xf0;
-		Main.cpu.SP += 1;
-		Main.cpu.A = Main.mmu.getByte(Main.cpu.SP);
-		Main.cpu.SP += 1;
+		Main.cpu.regs.F = Main.mmu.getByte(Main.cpu.regs.SP) & 0xf0;
+		Main.cpu.regs.SP += 1;
+		Main.cpu.regs.A = Main.mmu.getByte(Main.cpu.regs.SP);
+		Main.cpu.regs.SP += 1;
 		Main.cpu.cycles += 12;
 	}
 
@@ -2479,7 +2479,7 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_A_Cmem() {
-		Main.cpu.A = Main.mmu.getByte(0xff00 | Main.cpu.C);
+		Main.cpu.regs.A = Main.mmu.getByte(0xff00 | Main.cpu.regs.C);
 		Main.cpu.cycles += 8;
 	}
 
@@ -2495,10 +2495,10 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void PUSH_AF() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.A);
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.F);
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.A);
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.F);
 		Main.cpu.cycles += 16;
 	}
 
@@ -2506,11 +2506,11 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void OR_d8() {
-		Main.cpu.A = Main.cpu.A | Main.cpu.fetch();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.A = Main.cpu.regs.A | Main.cpu.regs.fetch();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 
@@ -2518,12 +2518,12 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RST_6() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-//		Main.cpu.PC = Main.mmu.getByte(0x30);
-		Main.cpu.PC = 0x0030;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+//		Main.cpu.regs.PC = Main.mmu.getByte(0x30);
+		Main.cpu.regs.PC = 0x0030;
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2531,20 +2531,20 @@ public class InstructionSet {
 //	2  12
 //	0 0 H C
 	public static void LD_HL_SPplusS8() {
-		Main.cpu.resetFlagZ();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagC();
+		Main.cpu.regs.resetFlagZ();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagC();
 		
-		int s8 = Main.cpu.fetchSigned();
-		int sum = Main.cpu.SP + s8;
+		int s8 = Main.cpu.regs.fetchSigned();
+		int sum = Main.cpu.regs.SP + s8;
 		
-		Main.cpu.checkHalfCarry8bit(Main.cpu.SP, s8);
-		if ((sum & 0xff) < (Main.cpu.SP & 0xff)) {
-			Main.cpu.setFlagC();
+		Main.cpu.regs.checkHalfCarry8bit(Main.cpu.regs.SP, s8);
+		if ((sum & 0xff) < (Main.cpu.regs.SP & 0xff)) {
+			Main.cpu.regs.setFlagC();
 		}
 		
-		Main.cpu.L = sum & 0xff;
-		Main.cpu.H = (sum >> 8) & 0xff;
+		Main.cpu.regs.L = sum & 0xff;
+		Main.cpu.regs.H = (sum >> 8) & 0xff;
 		Main.cpu.cycles += 12;
 	}
 
@@ -2552,8 +2552,8 @@ public class InstructionSet {
 //	1  8
 //	- - - -
 	public static void LD_SP_HL() {
-		int value = (Main.cpu.H << 8) + Main.cpu.L;
-		Main.cpu.SP = value;
+		int value = (Main.cpu.regs.H << 8) + Main.cpu.regs.L;
+		Main.cpu.regs.SP = value;
 		Main.cpu.cycles += 8;
 	}
 
@@ -2561,8 +2561,8 @@ public class InstructionSet {
 //	3  16
 //	- - - -
 	public static void LD_A_a16() {
-		int index = (Main.cpu.fetch() + (Main.cpu.fetch() << 8)) & 0xffff;
-		Main.cpu.A = Main.mmu.getByte(index);
+		int index = (Main.cpu.regs.fetch() + (Main.cpu.regs.fetch() << 8)) & 0xffff;
+		Main.cpu.regs.A = Main.mmu.getByte(index);
 		Main.cpu.cycles += 16;
 	}
 
@@ -2578,11 +2578,11 @@ public class InstructionSet {
 //	2  8
 //	Z 1 H C
 	public static void CP_d8() {
-		int d8 = Main.cpu.fetch();
-		Main.cpu.checkZero8bit((Main.cpu.A - d8) & 0xff);
-		Main.cpu.setFlagN();
-		Main.cpu.checkHalfCarry8bitSub(Main.cpu.A, d8);
-		Main.cpu.checkCarry8bitSub(Main.cpu.A, d8);
+		int d8 = Main.cpu.regs.fetch();
+		Main.cpu.regs.checkZero8bit((Main.cpu.regs.A - d8) & 0xff);
+		Main.cpu.regs.setFlagN();
+		Main.cpu.regs.checkHalfCarry8bitSub(Main.cpu.regs.A, d8);
+		Main.cpu.regs.checkCarry8bitSub(Main.cpu.regs.A, d8);
 		Main.cpu.cycles += 8;
 	}
 
@@ -2590,12 +2590,11 @@ public class InstructionSet {
 //	1  16
 //	- - - -
 	public static void RST_7() {
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, (Main.cpu.PC & 0xff00) >> 8); // High byte of PC
-		Main.cpu.SP -= 1;
-		Main.mmu.setByte(Main.cpu.SP, Main.cpu.PC & 0xff); // Low byte of PC
-//		Main.cpu.PC = Main.mmu.getByte(0x38);
-		Main.cpu.PC = 0x0038;
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, (Main.cpu.regs.PC & 0xff00) >> 8); // High byte of PC
+		Main.cpu.regs.SP -= 1;
+		Main.mmu.setByte(Main.cpu.regs.SP, Main.cpu.regs.PC & 0xff); // Low byte of PC
+		Main.cpu.regs.PC = 0x0038;
 		Main.cpu.cycles += 16;
 	}
 
@@ -2607,18 +2606,18 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RLC_B() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.B & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.B & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.B = ((Main.cpu.B << 1) | (Main.cpu.B >> 7)) & 0xff; // Rotate to the left
-		Main.cpu.checkZero8bit(Main.cpu.B);
+		Main.cpu.regs.B = ((Main.cpu.regs.B << 1) | (Main.cpu.regs.B >> 7)) & 0xff; // Rotate to the left
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.B);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2626,18 +2625,18 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RLC_C() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.C & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.C & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.C = ((Main.cpu.C << 1) | (Main.cpu.C >> 7)) & 0xff; // Rotate to the left
-		Main.cpu.checkZero8bit(Main.cpu.C);
+		Main.cpu.regs.C = ((Main.cpu.regs.C << 1) | (Main.cpu.regs.C >> 7)) & 0xff; // Rotate to the left
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.C);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2645,18 +2644,18 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RLC_D() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.D & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.D & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.D = ((Main.cpu.D << 1) | (Main.cpu.D >> 7)) & 0xff; // Rotate to the left
-		Main.cpu.checkZero8bit(Main.cpu.D);
+		Main.cpu.regs.D = ((Main.cpu.regs.D << 1) | (Main.cpu.regs.D >> 7)) & 0xff; // Rotate to the left
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.D);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2664,18 +2663,18 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RLC_E() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.E & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.E & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.E = ((Main.cpu.E << 1) | (Main.cpu.E >> 7)) & 0xff; // Rotate to the left
-		Main.cpu.checkZero8bit(Main.cpu.E);
+		Main.cpu.regs.E = ((Main.cpu.regs.E << 1) | (Main.cpu.regs.E >> 7)) & 0xff; // Rotate to the left
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.E);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2683,18 +2682,18 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RLC_H() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.H & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.H & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.H = ((Main.cpu.H << 1) | (Main.cpu.H >> 7)) & 0xff; // Rotate to the left
-		Main.cpu.checkZero8bit(Main.cpu.H);
+		Main.cpu.regs.H = ((Main.cpu.regs.H << 1) | (Main.cpu.regs.H >> 7)) & 0xff; // Rotate to the left
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.H);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2702,18 +2701,18 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RLC_L() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.L & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.L & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.L = ((Main.cpu.L << 1) | (Main.cpu.L >> 7)) & 0xff; // Rotate to the left
-		Main.cpu.checkZero8bit(Main.cpu.L);
+		Main.cpu.regs.L = ((Main.cpu.regs.L << 1) | (Main.cpu.regs.L >> 7)) & 0xff; // Rotate to the left
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.L);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2721,20 +2720,20 @@ public class InstructionSet {
 //	2  16
 //	Z 0 0 C
 	public static void RLC_HL() {
-		Main.cpu.resetFlagZ();
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagZ();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		int res = ((Main.mmu.getByte(Main.cpu.getHL()) << 1) | (Main.mmu.getByte(Main.cpu.getHL()) >> 7)) & 0xff; // Rotate to the left
-		Main.cpu.checkZero8bit(res);
-		Main.mmu.setByte(Main.cpu.getHL(), res);
+		int res = ((Main.mmu.getByte(Main.cpu.regs.getHL()) << 1) | (Main.mmu.getByte(Main.cpu.regs.getHL()) >> 7)) & 0xff; // Rotate to the left
+		Main.cpu.regs.checkZero8bit(res);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), res);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2742,18 +2741,18 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RLC_A() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.A & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = ((Main.cpu.A << 1) | (Main.cpu.A >> 7)) & 0xff; // Rotate to the left
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.A = ((Main.cpu.regs.A << 1) | (Main.cpu.regs.A >> 7)) & 0xff; // Rotate to the left
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2761,17 +2760,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RRC_B() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 
-		if ((Main.cpu.B & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.B & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.B = ((Main.cpu.B << 7) | (Main.cpu.B >> 1)) & 0xff; // Rotate to the right
-		Main.cpu.checkZero8bit(Main.cpu.B);
+		Main.cpu.regs.B = ((Main.cpu.regs.B << 7) | (Main.cpu.regs.B >> 1)) & 0xff; // Rotate to the right
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.B);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2779,17 +2778,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RRC_C() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 
-		if ((Main.cpu.C & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.C & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.C = ((Main.cpu.C << 7) | (Main.cpu.C >> 1)) & 0xff; // Rotate to right
-		Main.cpu.checkZero8bit(Main.cpu.C);
+		Main.cpu.regs.C = ((Main.cpu.regs.C << 7) | (Main.cpu.regs.C >> 1)) & 0xff; // Rotate to right
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.C);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2797,17 +2796,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RRC_D() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 
-		if ((Main.cpu.D & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.D & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.D = ((Main.cpu.D << 7) | (Main.cpu.D >> 1)) & 0xff; // Rotate to right
-		Main.cpu.checkZero8bit(Main.cpu.D);
+		Main.cpu.regs.D = ((Main.cpu.regs.D << 7) | (Main.cpu.regs.D >> 1)) & 0xff; // Rotate to right
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.D);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2815,17 +2814,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RRC_E() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 
-		if ((Main.cpu.E & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.E & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.E = ((Main.cpu.E << 7) | (Main.cpu.E >> 1)) & 0xff; // Rotate to right
-		Main.cpu.checkZero8bit(Main.cpu.E);
+		Main.cpu.regs.E = ((Main.cpu.regs.E << 7) | (Main.cpu.regs.E >> 1)) & 0xff; // Rotate to right
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.E);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2833,17 +2832,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RRC_H() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 
-		if ((Main.cpu.H & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.H & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.H = ((Main.cpu.H << 7) | (Main.cpu.H >> 1)) & 0xff; // Rotate to right
-		Main.cpu.checkZero8bit(Main.cpu.H);
+		Main.cpu.regs.H = ((Main.cpu.regs.H << 7) | (Main.cpu.regs.H >> 1)) & 0xff; // Rotate to right
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.H);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2851,17 +2850,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RRC_L() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 
-		if ((Main.cpu.L & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.L & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.L = ((Main.cpu.L << 7) | (Main.cpu.L >> 1)) & 0xff; // Rotate to right
-		Main.cpu.checkZero8bit(Main.cpu.L);
+		Main.cpu.regs.L = ((Main.cpu.regs.L << 7) | (Main.cpu.regs.L >> 1)) & 0xff; // Rotate to right
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.L);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2869,17 +2868,17 @@ public class InstructionSet {
 //	2  16
 //	Z 0 0 C
 	public static void RRC_HL() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.mmu.setByte(Main.cpu.getHL(), ((Main.mmu.getByte(Main.cpu.getHL()) << 7) | (Main.mmu.getByte(Main.cpu.getHL()) >> 1)) & 0xff); // Rotate to right
-		Main.cpu.checkZero8bit(Main.mmu.getByte(Main.cpu.getHL()));
+		Main.mmu.setByte(Main.cpu.regs.getHL(), ((Main.mmu.getByte(Main.cpu.regs.getHL()) << 7) | (Main.mmu.getByte(Main.cpu.regs.getHL()) >> 1)) & 0xff); // Rotate to right
+		Main.cpu.regs.checkZero8bit(Main.mmu.getByte(Main.cpu.regs.getHL()));
 		Main.cpu.cycles += 16;
 	}
 	
@@ -2887,17 +2886,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RRC_A() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 
-		if ((Main.cpu.A & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = ((Main.cpu.A << 7) | (Main.cpu.A >> 1)) & 0xff; // Rotate to right
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.A = ((Main.cpu.regs.A << 7) | (Main.cpu.regs.A >> 1)) & 0xff; // Rotate to right
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2905,21 +2904,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RL_B() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 		
 		// Set carry flag
-		if ((Main.cpu.B & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.B & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.B = (Main.cpu.B << 1) & 0xff; // Rotate to the right
-		Main.cpu.B |= c;
-		Main.cpu.checkZero8bit(Main.cpu.B);
+		Main.cpu.regs.B = (Main.cpu.regs.B << 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.B |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.B);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2927,21 +2926,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RL_C() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 		
 		// Set carry flag
-		if ((Main.cpu.C & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.C & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.C = (Main.cpu.C << 1) & 0xff; // Rotate to the right
-		Main.cpu.C |= c;
-		Main.cpu.checkZero8bit(Main.cpu.C);
+		Main.cpu.regs.C = (Main.cpu.regs.C << 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.C |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.C);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2949,21 +2948,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RL_D() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 
 		// Set carry flag
-		if ((Main.cpu.D & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.D & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.D = (Main.cpu.D << 1) & 0xff; // Rotate to the right
-		Main.cpu.D |= c;
-		Main.cpu.checkZero8bit(Main.cpu.D);
+		Main.cpu.regs.D = (Main.cpu.regs.D << 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.D |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.D);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2971,21 +2970,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RL_E() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 
 		// Set carry flag
-		if ((Main.cpu.E & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.E & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.E = (Main.cpu.E << 1) & 0xff; // Rotate to the right
-		Main.cpu.E |= c;
-		Main.cpu.checkZero8bit(Main.cpu.E);
+		Main.cpu.regs.E = (Main.cpu.regs.E << 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.E |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.E);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -2993,21 +2992,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RL_H() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 
 		// Set carry flag
-		if ((Main.cpu.H & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.H & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.H = (Main.cpu.H << 1) & 0xff; // Rotate to the right
-		Main.cpu.H |= c;
-		Main.cpu.checkZero8bit(Main.cpu.H);
+		Main.cpu.regs.H = (Main.cpu.regs.H << 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.H |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.H);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3015,21 +3014,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RL_L() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 		
 		// Set carry flag
-		if ((Main.cpu.L & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.L & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.L = (Main.cpu.L << 1) & 0xff; // Rotate to the right
-		Main.cpu.L |= c;
-		Main.cpu.checkZero8bit(Main.cpu.L);
+		Main.cpu.regs.L = (Main.cpu.regs.L << 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.L |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.L);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3037,21 +3036,21 @@ public class InstructionSet {
 //	2  16
 //	Z 0 0 C
 	public static void RL_HL() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 
 		// Set carry flag
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.mmu.setByte(Main.cpu.getHL(), (Main.mmu.getByte(Main.cpu.getHL()) << 1) & 0xff);
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | c);
-		Main.cpu.checkZero8bit(Main.mmu.getByte(Main.cpu.getHL()));
+		Main.mmu.setByte(Main.cpu.regs.getHL(), (Main.mmu.getByte(Main.cpu.regs.getHL()) << 1) & 0xff);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | c);
+		Main.cpu.regs.checkZero8bit(Main.mmu.getByte(Main.cpu.regs.getHL()));
 		Main.cpu.cycles += 16;
 	}
 	
@@ -3059,21 +3058,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RL_A() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = Main.cpu.getFlagC();
+		int c = Main.cpu.regs.getFlagC();
 
 		// Set carry flag
-		if ((Main.cpu.A & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = (Main.cpu.A << 1) & 0xff; // Rotate to the right
-		Main.cpu.A |= c;
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.A = (Main.cpu.regs.A << 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.A |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3081,21 +3080,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RR_B() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.cpu.B & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.B & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.B = (Main.cpu.B >> 1) & 0xff; // Rotate to the right
-		Main.cpu.B |= c;
-		Main.cpu.checkZero8bit(Main.cpu.B);
+		Main.cpu.regs.B = (Main.cpu.regs.B >> 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.B |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.B);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3103,21 +3102,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RR_C() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.cpu.C & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.C & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.C = (Main.cpu.C >> 1) & 0xff; // Rotate to the right
-		Main.cpu.C |= c;
-		Main.cpu.checkZero8bit(Main.cpu.C);
+		Main.cpu.regs.C = (Main.cpu.regs.C >> 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.C |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.C);
 		Main.cpu.cycles += 8;
 	}
 		
@@ -3125,21 +3124,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RR_D() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.cpu.D & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.D & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.D = (Main.cpu.D >> 1) & 0xff; // Rotate to the right
-		Main.cpu.D |= c;
-		Main.cpu.checkZero8bit(Main.cpu.D);
+		Main.cpu.regs.D = (Main.cpu.regs.D >> 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.D |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.D);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3147,21 +3146,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RR_E() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.cpu.E & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.E & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.E = (Main.cpu.E >> 1) & 0xff; // Rotate to the right
-		Main.cpu.E |= c;
-		Main.cpu.checkZero8bit(Main.cpu.E);
+		Main.cpu.regs.E = (Main.cpu.regs.E >> 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.E |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.E);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3169,21 +3168,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RR_H() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.cpu.H & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.H & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.H = (Main.cpu.H >> 1) & 0xff; // Rotate to the right
-		Main.cpu.H |= c;
-		Main.cpu.checkZero8bit(Main.cpu.H);
+		Main.cpu.regs.H = (Main.cpu.regs.H >> 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.H |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.H);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3191,21 +3190,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RR_L() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.cpu.L & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.L & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.L = (Main.cpu.L >> 1) & 0xff; // Rotate to the right
-		Main.cpu.L |= c;
-		Main.cpu.checkZero8bit(Main.cpu.L);
+		Main.cpu.regs.L = (Main.cpu.regs.L >> 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.L |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.L);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3213,21 +3212,21 @@ public class InstructionSet {
 //	2  16
 //	Z 0 0 C
 	public static void RR_HL() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.mmu.setByte(Main.cpu.getHL(), (Main.mmu.getByte(Main.cpu.getHL()) >> 1) & 0xff);
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | c);
-		Main.cpu.checkZero8bit(Main.mmu.getByte(Main.cpu.getHL()));
+		Main.mmu.setByte(Main.cpu.regs.getHL(), (Main.mmu.getByte(Main.cpu.regs.getHL()) >> 1) & 0xff);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | c);
+		Main.cpu.regs.checkZero8bit(Main.mmu.getByte(Main.cpu.regs.getHL()));
 		Main.cpu.cycles += 16;
 	}
 	
@@ -3235,21 +3234,21 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void RR_A() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 	
-		int c = (Main.cpu.getFlagC() << 7);
+		int c = (Main.cpu.regs.getFlagC() << 7);
 
 		// Set carry flag
-		if ((Main.cpu.A & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = (Main.cpu.A >> 1) & 0xff; // Rotate to the right
-		Main.cpu.A |= c;
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.A = (Main.cpu.regs.A >> 1) & 0xff; // Rotate to the right
+		Main.cpu.regs.A |= c;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3257,17 +3256,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SLA_B() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.B & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.B & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.B = (Main.cpu.B << 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.B);
+		Main.cpu.regs.B = (Main.cpu.regs.B << 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.B);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3275,17 +3274,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SLA_C() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.C & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.C & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.C = (Main.cpu.C << 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.C);
+		Main.cpu.regs.C = (Main.cpu.regs.C << 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.C);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3293,17 +3292,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SLA_D() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.D & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.D & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.D = (Main.cpu.D << 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.D);
+		Main.cpu.regs.D = (Main.cpu.regs.D << 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.D);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3311,17 +3310,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SLA_E() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.E & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.E & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.E = (Main.cpu.E << 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.E);
+		Main.cpu.regs.E = (Main.cpu.regs.E << 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.E);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3329,17 +3328,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SLA_H() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.H & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.H & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.H = (Main.cpu.H << 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.H);
+		Main.cpu.regs.H = (Main.cpu.regs.H << 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.H);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3347,17 +3346,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SLA_L() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.L & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.L & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.L = (Main.cpu.L << 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.L);
+		Main.cpu.regs.L = (Main.cpu.regs.L << 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.L);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3365,20 +3364,20 @@ public class InstructionSet {
 //	2  16
 //	Z 0 0 C
 	public static void SLA_HL() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		int res = Main.mmu.getByte(Main.cpu.getHL());
+		int res = Main.mmu.getByte(Main.cpu.regs.getHL());
 		
 		if ((res & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
 		res = (res << 1) & 0xff;
-		Main.cpu.checkZero8bit(res);
-		Main.mmu.setByte(Main.cpu.getHL(), res);
+		Main.cpu.regs.checkZero8bit(res);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), res);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -3386,17 +3385,17 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SLA_A() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
 		
-		if ((Main.cpu.A & 0x80) == 0x80) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x80) == 0x80) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.A = (Main.cpu.A << 1) & 0xff;
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.A = (Main.cpu.regs.A << 1) & 0xff;
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3404,20 +3403,20 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRA_B() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int bit = Main.cpu.B & 0x80;
-		int res = (Main.cpu.B >> 1) | bit; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int bit = Main.cpu.regs.B & 0x80;
+		int res = (Main.cpu.regs.B >> 1) | bit; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.B & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.B & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.B = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.B = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3425,20 +3424,20 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRA_C() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int bit = Main.cpu.C & 0x80;
-		int res = (Main.cpu.C >> 1) | bit; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int bit = Main.cpu.regs.C & 0x80;
+		int res = (Main.cpu.regs.C >> 1) | bit; // Rotate to the right
 
 		//		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.C & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.C & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.C = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.C = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3446,20 +3445,20 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRA_D() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int bit = Main.cpu.D & 0x80;
-		int res = (Main.cpu.D >> 1) | bit; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int bit = Main.cpu.regs.D & 0x80;
+		int res = (Main.cpu.regs.D >> 1) | bit; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.D & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.D & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.D = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.D = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3467,20 +3466,20 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRA_E() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int bit = Main.cpu.E & 0x80;
-		int res = (Main.cpu.E >> 1) | bit; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int bit = Main.cpu.regs.E & 0x80;
+		int res = (Main.cpu.regs.E >> 1) | bit; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.E & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.E & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.E = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.E = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3488,20 +3487,20 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRA_H() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int bit = Main.cpu.H & 0x80;
-		int res = (Main.cpu.H >> 1) | bit; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int bit = Main.cpu.regs.H & 0x80;
+		int res = (Main.cpu.regs.H >> 1) | bit; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.H & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.H & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.H = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.H = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3509,40 +3508,40 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRA_L() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int bit = Main.cpu.L & 0x80;
-		int res = (Main.cpu.L >> 1) | bit; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int bit = Main.cpu.regs.L & 0x80;
+		int res = (Main.cpu.regs.L >> 1) | bit; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.L & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.L & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.L = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.L = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 //	SRA (HL)
 //	2  16
 //	Z 0 0 C
 	public static void SRA_HL() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int bit = Main.mmu.getByte(Main.cpu.getHL()) & 0x80;
-		int res = (Main.mmu.getByte(Main.cpu.getHL()) >> 1) | bit; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int bit = Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x80;
+		int res = (Main.mmu.getByte(Main.cpu.regs.getHL()) >> 1) | bit; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.mmu.setByte(Main.cpu.getHL(), res & 0xff);
+		Main.cpu.regs.checkZero8bit(res);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), res & 0xff);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -3550,20 +3549,20 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRA_A() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int bit = Main.cpu.A & 0x80;
-		int res = (Main.cpu.A >> 1) | bit; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int bit = Main.cpu.regs.A & 0x80;
+		int res = (Main.cpu.regs.A >> 1) | bit; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.A & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.A = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.A = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3571,13 +3570,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void SWAP_B() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		int l = Main.cpu.B & 0x0f;
-		int h = Main.cpu.B & 0xf0;
-		Main.cpu.B = (l << 4) | (h >> 4);
-		Main.cpu.checkZero8bit(Main.cpu.B);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		int l = Main.cpu.regs.B & 0x0f;
+		int h = Main.cpu.regs.B & 0xf0;
+		Main.cpu.regs.B = (l << 4) | (h >> 4);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.B);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3585,13 +3584,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void SWAP_C() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		int l = Main.cpu.C & 0x0f;
-		int h = Main.cpu.C & 0xf0;
-		Main.cpu.C = (l << 4) | (h >> 4);
-		Main.cpu.checkZero8bit(Main.cpu.C);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		int l = Main.cpu.regs.C & 0x0f;
+		int h = Main.cpu.regs.C & 0xf0;
+		Main.cpu.regs.C = (l << 4) | (h >> 4);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.C);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3599,13 +3598,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void SWAP_D() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		int l = Main.cpu.D & 0x0f;
-		int h = Main.cpu.D & 0xf0;
-		Main.cpu.D = (l << 4) | (h >> 4);
-		Main.cpu.checkZero8bit(Main.cpu.D);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		int l = Main.cpu.regs.D & 0x0f;
+		int h = Main.cpu.regs.D & 0xf0;
+		Main.cpu.regs.D = (l << 4) | (h >> 4);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.D);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3613,13 +3612,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void SWAP_E() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		int l = Main.cpu.E & 0x0f;
-		int h = Main.cpu.E & 0xf0;
-		Main.cpu.E = (l << 4) | (h >> 4);
-		Main.cpu.checkZero8bit(Main.cpu.E);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		int l = Main.cpu.regs.E & 0x0f;
+		int h = Main.cpu.regs.E & 0xf0;
+		Main.cpu.regs.E = (l << 4) | (h >> 4);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.E);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3627,13 +3626,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void SWAP_H() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		int l = Main.cpu.H & 0x0f;
-		int h = Main.cpu.H & 0xf0;
-		Main.cpu.H = (l << 4) | (h >> 4);
-		Main.cpu.checkZero8bit(Main.cpu.H);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		int l = Main.cpu.regs.H & 0x0f;
+		int h = Main.cpu.regs.H & 0xf0;
+		Main.cpu.regs.H = (l << 4) | (h >> 4);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.H);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3641,13 +3640,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void SWAP_L() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		int l = Main.cpu.L & 0x0f;
-		int h = Main.cpu.L & 0xf0;
-		Main.cpu.L = (l << 4) | (h >> 4);
-		Main.cpu.checkZero8bit(Main.cpu.L);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		int l = Main.cpu.regs.L & 0x0f;
+		int h = Main.cpu.regs.L & 0xf0;
+		Main.cpu.regs.L = (l << 4) | (h >> 4);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.L);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3655,13 +3654,13 @@ public class InstructionSet {
 //	2  16
 //	Z 0 0 0
 	public static void SWAP_HL() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		int l = Main.mmu.getByte(Main.cpu.getHL()) & 0x0f;
-		int h = Main.mmu.getByte(Main.cpu.getHL()) & 0xf0;
-		Main.mmu.setByte(Main.cpu.getHL(), (l << 4) | (h >> 4));
-		Main.cpu.checkZero8bit(Main.mmu.getByte(Main.cpu.getHL()));
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		int l = Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x0f;
+		int h = Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xf0;
+		Main.mmu.setByte(Main.cpu.regs.getHL(), (l << 4) | (h >> 4));
+		Main.cpu.regs.checkZero8bit(Main.mmu.getByte(Main.cpu.regs.getHL()));
 		Main.cpu.cycles += 16;
 	}
 	
@@ -3669,13 +3668,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 0
 	public static void SWAP_A() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		Main.cpu.resetFlagC();
-		int l = Main.cpu.A & 0x0f;
-		int h = Main.cpu.A & 0xf0;
-		Main.cpu.A = (l << 4) | (h >> 4);
-		Main.cpu.checkZero8bit(Main.cpu.A);
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		Main.cpu.regs.resetFlagC();
+		int l = Main.cpu.regs.A & 0x0f;
+		int h = Main.cpu.regs.A & 0xf0;
+		Main.cpu.regs.A = (l << 4) | (h >> 4);
+		Main.cpu.regs.checkZero8bit(Main.cpu.regs.A);
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3683,19 +3682,19 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRL_B() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int res = Main.cpu.B >> 1; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int res = Main.cpu.regs.B >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.B & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.B & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.B = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.B = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3703,19 +3702,19 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRL_C() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int res = Main.cpu.C >> 1; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int res = Main.cpu.regs.C >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.C & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.C & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.C = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.C = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3723,19 +3722,19 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRL_D() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int res = Main.cpu.D >> 1; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int res = Main.cpu.regs.D >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.D & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.D & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.D = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.D = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3743,19 +3742,19 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRL_E() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int res = Main.cpu.E >> 1; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int res = Main.cpu.regs.E >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.E & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.E & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.E = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.E = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3763,19 +3762,19 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRL_H() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int res = Main.cpu.H >> 1; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int res = Main.cpu.regs.H >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.H & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.H & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.H = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.H = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3783,19 +3782,19 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRL_L() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int res = Main.cpu.L >> 1; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int res = Main.cpu.regs.L >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.L & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.L & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.L = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.L = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3803,19 +3802,19 @@ public class InstructionSet {
 //	2  16
 //	Z 0 0 C
 	public static void SRL_HL() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int res = Main.mmu.getByte(Main.cpu.getHL()) >> 1; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int res = Main.mmu.getByte(Main.cpu.regs.getHL()) >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.mmu.setByte(Main.cpu.getHL(), res & 0xff);
+		Main.cpu.regs.checkZero8bit(res);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), res & 0xff);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -3823,19 +3822,19 @@ public class InstructionSet {
 //	2  8
 //	Z 0 0 C
 	public static void SRL_A() {
-		Main.cpu.resetFlagN();
-		Main.cpu.resetFlagH();
-		int res = Main.cpu.A >> 1; // Rotate to the right
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.resetFlagH();
+		int res = Main.cpu.regs.A >> 1; // Rotate to the right
 		
 //		The contents of bit 7 are placed in both the CY flag and bit 0 of register A.
-		if ((Main.cpu.A & 0x01) == 0x01) {
-			Main.cpu.setFlagC();
+		if ((Main.cpu.regs.A & 0x01) == 0x01) {
+			Main.cpu.regs.setFlagC();
 		} else {
-			Main.cpu.resetFlagC();
+			Main.cpu.regs.resetFlagC();
 		}
 		
-		Main.cpu.checkZero8bit(res);
-		Main.cpu.A = res & 0xff;
+		Main.cpu.regs.checkZero8bit(res);
+		Main.cpu.regs.A = res & 0xff;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3843,13 +3842,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_0_B() {
-		if ((Main.cpu.B & 0x01) == 0x01) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.B & 0x01) == 0x01) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3857,13 +3856,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_0_C() {
-		if ((Main.cpu.C & 0x01) == 0x01) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.C & 0x01) == 0x01) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3871,13 +3870,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_0_D() {
-		if ((Main.cpu.D & 0x01) == 0x01) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.D & 0x01) == 0x01) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3885,13 +3884,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_0_E() {
-		if ((Main.cpu.E & 0x01) == 0x01) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.E & 0x01) == 0x01) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3899,13 +3898,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_0_H() {
-		if ((Main.cpu.H & 0x01) == 0x01) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.H & 0x01) == 0x01) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3913,13 +3912,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_0_L() {
-		if ((Main.cpu.L & 0x01) == 0x01) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.L & 0x01) == 0x01) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3927,13 +3926,13 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_0_HL() {
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x01) == 0x01) {
-			Main.cpu.resetFlagZ();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x01) == 0x01) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -3941,13 +3940,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_0_A() {
-		if ((Main.cpu.A & 0x01) == 0x01) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.A & 0x01) == 0x01) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3955,13 +3954,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_1_B() {
-		if ((Main.cpu.B & 0x02) == 0x02) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.B & 0x02) == 0x02) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3969,13 +3968,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_1_C() {
-		if ((Main.cpu.C & 0x02) == 0x02) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.C & 0x02) == 0x02) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3983,13 +3982,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_1_D() {
-		if ((Main.cpu.D & 0x02) == 0x02) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.D & 0x02) == 0x02) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -3997,13 +3996,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_1_E() {
-		if ((Main.cpu.E & 0x02) == 0x02) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.E & 0x02) == 0x02) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4011,13 +4010,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_1_H() {
-		if ((Main.cpu.H & 0x02) == 0x02) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.H & 0x02) == 0x02) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4025,13 +4024,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_1_L() {
-		if ((Main.cpu.L & 0x02) == 0x02) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.L & 0x02) == 0x02) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4039,13 +4038,13 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_1_HL() {
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x02) == 0x02) {
-			Main.cpu.resetFlagZ();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x02) == 0x02) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -4053,13 +4052,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_1_A() {
-		if ((Main.cpu.A & 0x02) == 0x02) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.A & 0x02) == 0x02) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4067,13 +4066,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_2_B() {
-		if ((Main.cpu.B & 0x04) == 0x04) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.B & 0x04) == 0x04) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4081,13 +4080,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_2_C() {
-		if ((Main.cpu.C & 0x04) == 0x04) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.C & 0x04) == 0x04) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4095,13 +4094,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_2_D() {
-		if ((Main.cpu.D & 0x04) == 0x04) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.D & 0x04) == 0x04) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4109,13 +4108,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_2_E() {
-		if ((Main.cpu.E & 0x04) == 0x04) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.E & 0x04) == 0x04) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4123,13 +4122,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_2_H() {
-		if ((Main.cpu.H & 0x04) == 0x04) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.H & 0x04) == 0x04) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4137,13 +4136,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_2_L() {
-		if ((Main.cpu.L & 0x04) == 0x04) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.L & 0x04) == 0x04) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4151,13 +4150,13 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_2_HL() {
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x04) == 0x04) {
-			Main.cpu.resetFlagZ();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x04) == 0x04) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -4165,13 +4164,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_2_A() {
-		if ((Main.cpu.A & 0x04) == 0x04) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.A & 0x04) == 0x04) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4179,13 +4178,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_3_B() {
-		if ((Main.cpu.B & 0x08) == 0x08) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.B & 0x08) == 0x08) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4193,13 +4192,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_3_C() {
-		if ((Main.cpu.C & 0x08) == 0x08) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.C & 0x08) == 0x08) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4207,13 +4206,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_3_D() {
-		if ((Main.cpu.D & 0x08) == 0x08) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.D & 0x08) == 0x08) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4221,13 +4220,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_3_E() {
-		if ((Main.cpu.E & 0x08) == 0x08) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.E & 0x08) == 0x08) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4235,13 +4234,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_3_H() {
-		if ((Main.cpu.H & 0x08) == 0x08) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.H & 0x08) == 0x08) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4249,13 +4248,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_3_L() {
-		if ((Main.cpu.L & 0x08) == 0x08) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.L & 0x08) == 0x08) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4263,13 +4262,13 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_3_HL() {
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x08) == 0x08) {
-			Main.cpu.resetFlagZ();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x08) == 0x08) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -4277,13 +4276,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_3_A() {
-		if ((Main.cpu.A & 0x08) == 0x08) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.A & 0x08) == 0x08) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4291,13 +4290,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_4_B() {
-		if ((Main.cpu.B & 0x10) == 0x10) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.B & 0x10) == 0x10) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4305,13 +4304,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_4_C() {
-		if ((Main.cpu.C & 0x10) == 0x10) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.C & 0x10) == 0x10) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4319,13 +4318,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_4_D() {
-		if ((Main.cpu.D & 0x10) == 0x10) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.D & 0x10) == 0x10) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4333,13 +4332,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_4_E() {
-		if ((Main.cpu.E & 0x10) == 0x10) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.E & 0x10) == 0x10) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4347,13 +4346,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_4_H() {
-		if ((Main.cpu.H & 0x10) == 0x10) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.H & 0x10) == 0x10) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4361,13 +4360,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_4_L() {
-		if ((Main.cpu.L & 0x10) == 0x10) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.L & 0x10) == 0x10) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4375,13 +4374,13 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_4_HL() {
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x10) == 0x10) {
-			Main.cpu.resetFlagZ();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x10) == 0x10) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -4389,13 +4388,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_4_A() {
-		if ((Main.cpu.A & 0x10) == 0x10) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.A & 0x10) == 0x10) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4403,13 +4402,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_5_B() {
-		if ((Main.cpu.B & 0x20) == 0x20) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.B & 0x20) == 0x20) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4417,13 +4416,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_5_C() {
-		if ((Main.cpu.C & 0x20) == 0x20) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.C & 0x20) == 0x20) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4431,13 +4430,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_5_D() {
-		if ((Main.cpu.D & 0x20) == 0x20) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.D & 0x20) == 0x20) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4445,13 +4444,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_5_E() {
-		if ((Main.cpu.E & 0x20) == 0x20) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.E & 0x20) == 0x20) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4459,13 +4458,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_5_H() {
-		if ((Main.cpu.H & 0x20) == 0x20) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.H & 0x20) == 0x20) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4473,13 +4472,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_5_L() {
-		if ((Main.cpu.L & 0x20) == 0x20) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.L & 0x20) == 0x20) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4487,13 +4486,13 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_5_HL() {
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x20) == 0x20) {
-			Main.cpu.resetFlagZ();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x20) == 0x20) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -4501,13 +4500,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_5_A() {
-		if ((Main.cpu.A & 0x20) == 0x20) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.A & 0x20) == 0x20) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4515,13 +4514,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_6_B() {
-		if ((Main.cpu.B & 0x40) == 0x40) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.B & 0x40) == 0x40) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4529,13 +4528,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_6_C() {
-		if ((Main.cpu.C & 0x40) == 0x40) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.C & 0x40) == 0x40) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4543,13 +4542,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_6_D() {
-		if ((Main.cpu.D & 0x40) == 0x40) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.D & 0x40) == 0x40) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4557,13 +4556,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_6_E() {
-		if ((Main.cpu.E & 0x40) == 0x40) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.E & 0x40) == 0x40) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4571,13 +4570,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_6_H() {
-		if ((Main.cpu.H & 0x40) == 0x40) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.H & 0x40) == 0x40) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4585,13 +4584,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_6_L() {
-		if ((Main.cpu.L & 0x40) == 0x40) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.L & 0x40) == 0x40) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4599,13 +4598,13 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_6_HL() {
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x40) == 0x40) {
-			Main.cpu.resetFlagZ();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x40) == 0x40) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -4613,13 +4612,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_6_A() {
-		if ((Main.cpu.A & 0x40) == 0x40) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.A & 0x40) == 0x40) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4627,13 +4626,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_7_B() {
-		if ((Main.cpu.B & 0x80) == 0x80) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.B & 0x80) == 0x80) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4641,13 +4640,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_7_C() {
-		if ((Main.cpu.C & 0x80) == 0x80) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.C & 0x80) == 0x80) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4655,13 +4654,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_7_D() {
-		if ((Main.cpu.D & 0x80) == 0x80) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.D & 0x80) == 0x80) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4669,13 +4668,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_7_E() {
-		if ((Main.cpu.E & 0x80) == 0x80) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.E & 0x80) == 0x80) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4683,13 +4682,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_7_H() {
-		if ((Main.cpu.H & 0x80) == 0x80) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.H & 0x80) == 0x80) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4697,13 +4696,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_7_L() {
-		if ((Main.cpu.L & 0x80) == 0x80) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.L & 0x80) == 0x80) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4711,13 +4710,13 @@ public class InstructionSet {
 //	2  12
 //	Z 0 1 -
 	public static void BIT_7_HL() {
-		if ((Main.mmu.getByte(Main.cpu.getHL()) & 0x80) == 0x80) {
-			Main.cpu.resetFlagZ();
+		if ((Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x80) == 0x80) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 12;
 	}
 	
@@ -4725,13 +4724,13 @@ public class InstructionSet {
 //	2  8
 //	Z 0 1 -
 	public static void BIT_7_A() {
-		if ((Main.cpu.A & 0x80) == 0x80) {
-			Main.cpu.resetFlagZ();
+		if ((Main.cpu.regs.A & 0x80) == 0x80) {
+			Main.cpu.regs.resetFlagZ();
 		} else {
-			Main.cpu.setFlagZ();
+			Main.cpu.regs.setFlagZ();
 		}
-		Main.cpu.resetFlagN();
-		Main.cpu.setFlagH();
+		Main.cpu.regs.resetFlagN();
+		Main.cpu.regs.setFlagH();
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4739,7 +4738,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_0_B() {
-		Main.cpu.B &= 0xfe;
+		Main.cpu.regs.B &= 0xfe;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4747,7 +4746,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_0_C() {
-		Main.cpu.C &= 0xfe;
+		Main.cpu.regs.C &= 0xfe;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4755,7 +4754,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_0_D() {
-		Main.cpu.D &= 0xfe;
+		Main.cpu.regs.D &= 0xfe;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4763,7 +4762,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_0_E() {
-		Main.cpu.E &= 0xfe;
+		Main.cpu.regs.E &= 0xfe;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4771,7 +4770,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_0_H() {
-		Main.cpu.H &= 0xfe;
+		Main.cpu.regs.H &= 0xfe;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4779,7 +4778,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_0_L() {
-		Main.cpu.L &= 0xfe;
+		Main.cpu.regs.L &= 0xfe;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4787,7 +4786,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_0_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) & 0xfe);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xfe);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -4795,7 +4794,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_0_A() {
-		Main.cpu.A &= 0xfe;
+		Main.cpu.regs.A &= 0xfe;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4803,7 +4802,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_1_B() {
-		Main.cpu.B &= 0xfd;
+		Main.cpu.regs.B &= 0xfd;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4811,7 +4810,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_1_C() {
-		Main.cpu.C &= 0xfd;
+		Main.cpu.regs.C &= 0xfd;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4819,7 +4818,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_1_D() {
-		Main.cpu.D &= 0xfd;
+		Main.cpu.regs.D &= 0xfd;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4827,7 +4826,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_1_E() {
-		Main.cpu.E &= 0xfd;
+		Main.cpu.regs.E &= 0xfd;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4835,7 +4834,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_1_H() {
-		Main.cpu.H &= 0xfd;
+		Main.cpu.regs.H &= 0xfd;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4843,7 +4842,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_1_L() {
-		Main.cpu.L &= 0xfd;
+		Main.cpu.regs.L &= 0xfd;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4851,7 +4850,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_1_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) & 0xfd);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xfd);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -4859,7 +4858,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_1_A() {
-		Main.cpu.A &= 0xfd;
+		Main.cpu.regs.A &= 0xfd;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4867,7 +4866,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_2_B() {
-		Main.cpu.B &= 0xfb;
+		Main.cpu.regs.B &= 0xfb;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4875,7 +4874,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_2_C() {
-		Main.cpu.C &= 0xfb;
+		Main.cpu.regs.C &= 0xfb;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4883,7 +4882,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_2_D() {
-		Main.cpu.D &= 0xfb;
+		Main.cpu.regs.D &= 0xfb;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4891,7 +4890,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_2_E() {
-		Main.cpu.E &= 0xfb;
+		Main.cpu.regs.E &= 0xfb;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4899,7 +4898,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_2_H() {
-		Main.cpu.H &= 0xfb;
+		Main.cpu.regs.H &= 0xfb;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4907,7 +4906,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_2_L() {
-		Main.cpu.L &= 0xfb;
+		Main.cpu.regs.L &= 0xfb;
 		Main.cpu.cycles += 8;
 	}
 
@@ -4915,7 +4914,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_2_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) & 0xfb);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xfb);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -4923,7 +4922,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_2_A() {
-		Main.cpu.A &= 0xfb;
+		Main.cpu.regs.A &= 0xfb;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4931,7 +4930,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_3_B() {
-		Main.cpu.B &= 0xf7;
+		Main.cpu.regs.B &= 0xf7;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4939,7 +4938,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_3_C() {
-		Main.cpu.C &= 0xf7;
+		Main.cpu.regs.C &= 0xf7;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -4947,7 +4946,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_3_D() {
-		Main.cpu.D &= 0xf7;
+		Main.cpu.regs.D &= 0xf7;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4955,7 +4954,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_3_E() {
-		Main.cpu.E &= 0xf7;
+		Main.cpu.regs.E &= 0xf7;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4963,7 +4962,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_3_H() {
-		Main.cpu.H &= 0xf7;
+		Main.cpu.regs.H &= 0xf7;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4971,7 +4970,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_3_L() {
-		Main.cpu.L &= 0xf7;
+		Main.cpu.regs.L &= 0xf7;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4979,7 +4978,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_3_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) & 0xf7);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xf7);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -4987,7 +4986,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_3_A() {
-		Main.cpu.A &= 0xf7;
+		Main.cpu.regs.A &= 0xf7;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -4995,7 +4994,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_4_B() {
-		Main.cpu.B &= 0xef;
+		Main.cpu.regs.B &= 0xef;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5003,7 +5002,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_4_C() {
-		Main.cpu.C &= 0xef;
+		Main.cpu.regs.C &= 0xef;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5011,7 +5010,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_4_D() {
-		Main.cpu.D &= 0xef;
+		Main.cpu.regs.D &= 0xef;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5019,7 +5018,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_4_E() {
-		Main.cpu.E &= 0xef;
+		Main.cpu.regs.E &= 0xef;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5027,7 +5026,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_4_H() {
-		Main.cpu.H &= 0xef;
+		Main.cpu.regs.H &= 0xef;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5035,7 +5034,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_4_L() {
-		Main.cpu.L &= 0xef;
+		Main.cpu.regs.L &= 0xef;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5043,7 +5042,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_4_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) & 0xef);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xef);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5051,7 +5050,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_4_A() {
-		Main.cpu.A &= 0xef;
+		Main.cpu.regs.A &= 0xef;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5059,7 +5058,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_5_B() {
-		Main.cpu.B &= 0xdf;
+		Main.cpu.regs.B &= 0xdf;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -5067,7 +5066,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_5_C() {
-		Main.cpu.C &= 0xdf;
+		Main.cpu.regs.C &= 0xdf;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5075,7 +5074,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_5_D() {
-		Main.cpu.D &= 0xdf;
+		Main.cpu.regs.D &= 0xdf;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5083,7 +5082,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_5_E() {
-		Main.cpu.E &= 0xdf;
+		Main.cpu.regs.E &= 0xdf;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5091,7 +5090,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_5_H() {
-		Main.cpu.H &= 0xdf;
+		Main.cpu.regs.H &= 0xdf;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5099,7 +5098,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_5_L() {
-		Main.cpu.L &= 0xdf;
+		Main.cpu.regs.L &= 0xdf;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5107,7 +5106,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_5_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) & 0xdf);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xdf);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5115,7 +5114,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_5_A() {
-		Main.cpu.A &= 0xdf;
+		Main.cpu.regs.A &= 0xdf;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5123,7 +5122,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_6_B() {
-		Main.cpu.B &= 0xbf;
+		Main.cpu.regs.B &= 0xbf;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5131,7 +5130,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_6_C() {
-		Main.cpu.C &= 0xbf;
+		Main.cpu.regs.C &= 0xbf;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -5139,7 +5138,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_6_D() {
-		Main.cpu.D &= 0xbf;
+		Main.cpu.regs.D &= 0xbf;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5147,7 +5146,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_6_E() {
-		Main.cpu.E &= 0xbf;
+		Main.cpu.regs.E &= 0xbf;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5155,7 +5154,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_6_H() {
-		Main.cpu.H &= 0xbf;
+		Main.cpu.regs.H &= 0xbf;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5163,7 +5162,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_6_L() {
-		Main.cpu.L &= 0xbf;
+		Main.cpu.regs.L &= 0xbf;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5171,7 +5170,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_6_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) & 0xbf);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) & 0xbf);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5179,7 +5178,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_6_A() {
-		Main.cpu.A &= 0xbf;
+		Main.cpu.regs.A &= 0xbf;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5187,7 +5186,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_7_B() {
-		Main.cpu.B &= 0x7f;
+		Main.cpu.regs.B &= 0x7f;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5195,7 +5194,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_7_C() {
-		Main.cpu.C &= 0x7f;
+		Main.cpu.regs.C &= 0x7f;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -5203,7 +5202,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_7_D() {
-		Main.cpu.D &= 0x7f;
+		Main.cpu.regs.D &= 0x7f;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5211,7 +5210,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_7_E() {
-		Main.cpu.E &= 0x7f;
+		Main.cpu.regs.E &= 0x7f;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5219,7 +5218,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_7_H() {
-		Main.cpu.H &= 0x7f;
+		Main.cpu.regs.H &= 0x7f;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5227,7 +5226,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_7_L() {
-		Main.cpu.L &= 0x7f;
+		Main.cpu.regs.L &= 0x7f;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5235,7 +5234,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void RES_7_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) & 0x7f);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) & 0x7f);
 		Main.cpu.cycles += 16;
 	}
 
@@ -5243,7 +5242,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void RES_7_A() {
-		Main.cpu.A &= 0x7f;
+		Main.cpu.regs.A &= 0x7f;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5251,7 +5250,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_0_B() {
-		Main.cpu.B |= 0x01;
+		Main.cpu.regs.B |= 0x01;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5259,7 +5258,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_0_C() {
-		Main.cpu.C |= 0x01;
+		Main.cpu.regs.C |= 0x01;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -5267,7 +5266,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_0_D() {
-		Main.cpu.D |= 0x01;
+		Main.cpu.regs.D |= 0x01;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5275,7 +5274,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_0_E() {
-		Main.cpu.E |= 0x01;
+		Main.cpu.regs.E |= 0x01;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5283,7 +5282,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_0_H() {
-		Main.cpu.H |= 0x01;
+		Main.cpu.regs.H |= 0x01;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5291,7 +5290,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_0_L() {
-		Main.cpu.L |= 0x01;
+		Main.cpu.regs.L |= 0x01;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5299,7 +5298,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_0_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | 0x01);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | 0x01);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5307,7 +5306,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_0_A() {
-		Main.cpu.A |= 0x01;
+		Main.cpu.regs.A |= 0x01;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5315,7 +5314,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_1_B() {
-		Main.cpu.B |= 0x02;
+		Main.cpu.regs.B |= 0x02;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5323,7 +5322,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_1_C() {
-		Main.cpu.C |= 0x02;
+		Main.cpu.regs.C |= 0x02;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5331,7 +5330,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_1_D() {
-		Main.cpu.D |= 0x02;
+		Main.cpu.regs.D |= 0x02;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5339,7 +5338,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_1_E() {
-		Main.cpu.E |= 0x02;
+		Main.cpu.regs.E |= 0x02;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5347,7 +5346,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_1_H() {
-		Main.cpu.H |= 0x02;
+		Main.cpu.regs.H |= 0x02;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5355,7 +5354,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_1_L() {
-		Main.cpu.L |= 0x02;
+		Main.cpu.regs.L |= 0x02;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5363,7 +5362,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_1_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | 0x02);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | 0x02);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5371,7 +5370,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_1_A() {
-		Main.cpu.A |= 0x02;
+		Main.cpu.regs.A |= 0x02;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5379,7 +5378,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_2_B() {
-		Main.cpu.B |= 0x04;
+		Main.cpu.regs.B |= 0x04;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5387,7 +5386,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_2_C() {
-		Main.cpu.C |= 0x04;
+		Main.cpu.regs.C |= 0x04;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -5395,7 +5394,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_2_D() {
-		Main.cpu.D |= 0x04;
+		Main.cpu.regs.D |= 0x04;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5403,7 +5402,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_2_E() {
-		Main.cpu.E |= 0x04;
+		Main.cpu.regs.E |= 0x04;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5411,7 +5410,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_2_H() {
-		Main.cpu.H |= 0x04;
+		Main.cpu.regs.H |= 0x04;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5419,7 +5418,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_2_L() {
-		Main.cpu.L |= 0x04;
+		Main.cpu.regs.L |= 0x04;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5427,7 +5426,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_2_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | 0x04);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | 0x04);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5435,7 +5434,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_2_A() {
-		Main.cpu.A |= 0x04;
+		Main.cpu.regs.A |= 0x04;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5443,7 +5442,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_3_B() {
-		Main.cpu.B |= 0x08;
+		Main.cpu.regs.B |= 0x08;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5451,7 +5450,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_3_C() {
-		Main.cpu.C |= 0x08;
+		Main.cpu.regs.C |= 0x08;
 		Main.cpu.cycles += 8;
 	}
 		
@@ -5459,7 +5458,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_3_D() {
-		Main.cpu.D |= 0x08;
+		Main.cpu.regs.D |= 0x08;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5467,7 +5466,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_3_E() {
-		Main.cpu.E |= 0x08;
+		Main.cpu.regs.E |= 0x08;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5475,7 +5474,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_3_H() {
-		Main.cpu.H |= 0x08;
+		Main.cpu.regs.H |= 0x08;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5483,7 +5482,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_3_L() {
-		Main.cpu.L |= 0x08;
+		Main.cpu.regs.L |= 0x08;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5491,7 +5490,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_3_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | 0x08);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | 0x08);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5499,7 +5498,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_3_A() {
-		Main.cpu.A |= 0x08;
+		Main.cpu.regs.A |= 0x08;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5507,7 +5506,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_4_B() {
-		Main.cpu.B |= 0x10;
+		Main.cpu.regs.B |= 0x10;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5515,7 +5514,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_4_C() {
-		Main.cpu.C |= 0x10;
+		Main.cpu.regs.C |= 0x10;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5523,7 +5522,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_4_D() {
-		Main.cpu.D |= 0x10;
+		Main.cpu.regs.D |= 0x10;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5531,7 +5530,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_4_E() {
-		Main.cpu.E |= 0x10;
+		Main.cpu.regs.E |= 0x10;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5539,7 +5538,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_4_H() {
-		Main.cpu.H |= 0x10;
+		Main.cpu.regs.H |= 0x10;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5547,7 +5546,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_4_L() {
-		Main.cpu.L |= 0x10;
+		Main.cpu.regs.L |= 0x10;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5555,7 +5554,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_4_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | 0x10);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | 0x10);
 		Main.cpu.cycles += 16;
 	}
 
@@ -5563,7 +5562,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_4_A() {
-		Main.cpu.A |= 0x10;
+		Main.cpu.regs.A |= 0x10;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5571,7 +5570,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_5_B() {
-		Main.cpu.B |= 0x20;
+		Main.cpu.regs.B |= 0x20;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5579,7 +5578,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_5_C() {
-		Main.cpu.C |= 0x20;
+		Main.cpu.regs.C |= 0x20;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5587,7 +5586,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_5_D() {
-		Main.cpu.D |= 0x20;
+		Main.cpu.regs.D |= 0x20;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5595,7 +5594,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_5_E() {
-		Main.cpu.E |= 0x20;
+		Main.cpu.regs.E |= 0x20;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5603,7 +5602,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_5_H() {
-		Main.cpu.H |= 0x20;
+		Main.cpu.regs.H |= 0x20;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5611,7 +5610,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_5_L() {
-		Main.cpu.L |= 0x20;
+		Main.cpu.regs.L |= 0x20;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5619,7 +5618,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_5_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | 0x20);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | 0x20);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5627,7 +5626,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_5_A() {
-		Main.cpu.A |= 0x20;
+		Main.cpu.regs.A |= 0x20;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5635,7 +5634,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_6_B() {
-		Main.cpu.B |= 0x40;
+		Main.cpu.regs.B |= 0x40;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5643,7 +5642,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_6_C() {
-		Main.cpu.C |= 0x40;
+		Main.cpu.regs.C |= 0x40;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5651,7 +5650,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_6_D() {
-		Main.cpu.D |= 0x40;
+		Main.cpu.regs.D |= 0x40;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5659,7 +5658,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_6_E() {
-		Main.cpu.E |= 0x40;
+		Main.cpu.regs.E |= 0x40;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5667,7 +5666,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_6_H() {
-		Main.cpu.H |= 0x40;
+		Main.cpu.regs.H |= 0x40;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5675,7 +5674,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_6_L() {
-		Main.cpu.L |= 0x40;
+		Main.cpu.regs.L |= 0x40;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5683,7 +5682,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_6_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | 0x40);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | 0x40);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5691,7 +5690,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_6_A() {
-		Main.cpu.A |= 0x40;
+		Main.cpu.regs.A |= 0x40;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5699,7 +5698,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_7_B() {
-		Main.cpu.B |= 0x80;
+		Main.cpu.regs.B |= 0x80;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5707,7 +5706,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_7_C() {
-		Main.cpu.C |= 0x80;
+		Main.cpu.regs.C |= 0x80;
 		Main.cpu.cycles += 8;
 	}
 	
@@ -5715,7 +5714,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_7_D() {
-		Main.cpu.D |= 0x80;
+		Main.cpu.regs.D |= 0x80;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5723,7 +5722,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_7_E() {
-		Main.cpu.E |= 0x80;
+		Main.cpu.regs.E |= 0x80;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5731,7 +5730,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_7_H() {
-		Main.cpu.H |= 0x80;
+		Main.cpu.regs.H |= 0x80;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5739,7 +5738,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_7_L() {
-		Main.cpu.L |= 0x80;
+		Main.cpu.regs.L |= 0x80;
 		Main.cpu.cycles += 8;
 	}
 
@@ -5747,7 +5746,7 @@ public class InstructionSet {
 //	2  16
 //	- - - -
 	public static void SET_7_HL() {
-		Main.mmu.setByte(Main.cpu.getHL(), Main.mmu.getByte(Main.cpu.getHL()) | 0x80);
+		Main.mmu.setByte(Main.cpu.regs.getHL(), Main.mmu.getByte(Main.cpu.regs.getHL()) | 0x80);
 		Main.cpu.cycles += 16;
 	}
 	
@@ -5755,7 +5754,7 @@ public class InstructionSet {
 //	2  8
 //	- - - -
 	public static void SET_7_A() {
-		Main.cpu.A |= 0x80;
+		Main.cpu.regs.A |= 0x80;
 		Main.cpu.cycles += 8;
 	}
 
