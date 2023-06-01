@@ -125,12 +125,12 @@ public class PixelProcessingUnit extends JPanel {
 	// Flag setting methods
 	private void setCoincidence() {
 		// Set bit 2
-		BitOperations.bitSet(Main.mmu.ram[0xff41], 2);
+		Main.mmu.ram[0xff41] = (byte) BitOperations.bitSet(Main.mmu.ram[0xff41], 2);
 	}
 
 	private void clearCoincidence() {
 		// Clear bit 2
-		BitOperations.bitReset(Main.mmu.ram[0xff41], 2);
+		Main.mmu.ram[0xff41] = (byte) BitOperations.bitReset(Main.mmu.ram[0xff41], 2);
 	}
 
 	//    FF40 — LCDC: LCD control
@@ -260,7 +260,7 @@ public class PixelProcessingUnit extends JPanel {
     		|| ((mode2IrqOn() && (mode() == 2)));
 
 		if (!presignal && statsignal)
-			BitOperations.bitSet(Main.mmu.ram[0xff0f], 1);
+			Main.mmu.ram[0xff0f] = (byte) BitOperations.bitSet(Main.mmu.ram[0xff0f], 1);
 	}
 
 	private void searchOam() {
