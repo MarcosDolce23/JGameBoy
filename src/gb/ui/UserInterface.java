@@ -67,9 +67,10 @@ public class UserInterface implements ActionListener, KeyListener {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-                new Thread(() -> {
-                	Main.start();
-                }).start();
+//                new Thread(() -> {
+//                	Main.start();
+//                }).start();
+			    Main.start();
 			}
 		}
 	}
