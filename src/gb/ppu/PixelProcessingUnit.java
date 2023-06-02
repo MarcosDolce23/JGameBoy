@@ -262,14 +262,14 @@ public class PixelProcessingUnit extends JPanel {
 		if (!presignal && statsignal)
 			Main.mmu.ram[0xff0f] = (byte) BitOperations.bitSet(Main.mmu.ram[0xff0f], 1);
 	}
-
-	private void searchOam() {
-		acceptedSprites.clear(); // Clear buffer
-    
+	
+	private void initSpritePool() {
 		for (var i = 0; i < spritePool.length; i++)
 			spritePool[i] = new Sprite();
-    
-		// Load the spritePool with Sprite attributes from the oam
+	}
+	
+	private void loadSpritePool() {
+		 // Load the spritePool with Sprite attributes from the oam
 		for (int i = 0xfe00; i < 0xfea0; i += 4 ) {
 			Sprite bs = new Sprite();
 			bs.setY(Main.mmu.getByte(i));
@@ -278,23 +278,30 @@ public class PixelProcessingUnit extends JPanel {
 			bs.setFlags(Main.mmu.getByte(i + 3));
 			spritePool[(i - 0xfe00) / 4] = bs;
 		}
-    
-		// Search sprite pool
+	}
+	
+	private void searchSpritePool() {
 		for (int i = 0; i < spritePool.length; i++) {
 			Sprite sprite = spritePool[i];
-
 			int ly = this.ly + 16;
 			int spriteHeight = tallSprites() ? 16 : 8;
-
 			if ((sprite.x > 0) && (ly >= sprite.y) && (ly < sprite.y + spriteHeight)) {
 				acceptedSprites.add(sprite);
 				int accepted = acceptedSprites.size();
-
 				if (accepted == maxSpritesScan)
 					break;
 			}
-      
 		}
+	}
+
+	private void searchOam() {
+		acceptedSprites.clear(); // Clear buffer
+		
+		initSpritePool();
+    
+		loadSpritePool();
+    
+		searchSpritePool();
     
 		Collections.sort(acceptedSprites, (a, b) -> { if (b.x == a.x) return -1; return b.x - a.x;});
 	}
