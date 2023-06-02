@@ -389,20 +389,6 @@ public class AudioProcessingUnit {
 		}
 	}
 	
-//	public void setVolume(float volume) {
-//		SourceDataLine line;
-//		try {
-//            line = AudioSystem.getSourceDataLine(FORMAT);
-//            line.open(FORMAT);
-//        } catch (LineUnavailableException e) {
-//            throw new RuntimeException(e);
-//        }
-//		if (volume < 0f || volume > 1f)
-//	        throw new IllegalArgumentException("Volume not valid: " + volume);
-//		FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);        
-//        gainControl.setValue(20f * (float) Math.log10(volume));
-//	}
-	
 	private AudioProcessingUnit( ) {}
 	
 	public static AudioProcessingUnit getInstance() {
