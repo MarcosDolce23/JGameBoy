@@ -1,14 +1,5 @@
 package gb.apu;
 
-import java.io.IOException;
-
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.UnsupportedAudioFileException;
-
 import gb.Main;
 import gb.utils.BitOperations;
 
@@ -16,11 +7,8 @@ public class AudioProcessingUnit {
 	private static AudioProcessingUnit instance;
 	
     // Sound buffer configuration
-    private static final int SAMPLE_RATE = 44100;
-    private static final int BUFFER_SIZE = 8192;
-    private static final AudioFormat FORMAT = new AudioFormat(SAMPLE_RATE, 8, 1, true, true);
-    private float[] bufferQueues = new float[BUFFER_SIZE];
-    private byte[] buffer = new byte[BUFFER_SIZE];
+    private float[] bufferQueues = new float[AudioOutput.BUFFER_SIZE];
+    private static byte[] buffer = new byte[AudioOutput.BUFFER_SIZE];
 	
 	// Buffer queue
 	private int bufferInd = 0;
@@ -30,7 +18,7 @@ public class AudioProcessingUnit {
     private int soundInterval = Main.cpu.cyclesPerSec / 512; // 8192 cycles
 
     private int bufferClocks = 0;
-    private int bufferInterval = (int) Math.ceil(Main.cpu.cyclesPerSec / SAMPLE_RATE);
+    private int bufferInterval = (int) Math.ceil(Main.cpu.cyclesPerSec / AudioOutput.SAMPLE_RATE);
 
     private boolean lengthStep = false;
     public boolean soundOn = false;
@@ -335,23 +323,8 @@ public class AudioProcessingUnit {
         return (((Main.mmu.ram[0xff30 + (chan3SampleStep >> 1)] & 0xff) & 0xf));
     }
     
-    private void playBuffer() throws UnsupportedAudioFileException, IOException {
-    	SourceDataLine line;
-        try {
-            line = AudioSystem.getSourceDataLine(FORMAT);
-            line.open(FORMAT);
-        } catch (LineUnavailableException e) {
-            throw new RuntimeException(e);
-        }
-        
-        line.start();
-        line.write(buffer, 0, buffer.length);
-        line.drain();
-        line.stop();
-    }
-    
     private void copyBufferQueues() {
-        for (int i = 0; i < BUFFER_SIZE; i ++)
+        for (int i = 0; i < AudioOutput.BUFFER_SIZE; i ++)
             buffer[i] = (byte) (bufferQueues[i] * 127f);
     }
     
@@ -400,36 +373,35 @@ public class AudioProcessingUnit {
                 copyBufferQueues();
                 
                 // This action must be asynchronic
-                new Thread(() -> {
-                    try {
-    					playBuffer();
-    				} catch (UnsupportedAudioFileException e) {
-    					// TODO Auto-generated catch block
-    					e.printStackTrace();
-    				} catch (IOException e) {
-    					// TODO Auto-generated catch block
-    					e.printStackTrace();
-    				}
-                }).start();
+                Thread threadPlayBuffer = new Thread(new ThreadPlayBuffer());
+                threadPlayBuffer.start();
             }
 
             bufferClocks -= bufferInterval;
         }
 	}
 	
-	public void setVolume(float volume) {
-		SourceDataLine line;
-		try {
-            line = AudioSystem.getSourceDataLine(FORMAT);
-            line.open(FORMAT);
-        } catch (LineUnavailableException e) {
-            throw new RuntimeException(e);
-        }
-		if (volume < 0f || volume > 1f)
-	        throw new IllegalArgumentException("Volume not valid: " + volume);
-		FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);        
-        gainControl.setValue(20f * (float) Math.log10(volume));
+	static class ThreadPlayBuffer implements Runnable {
+		@Override
+		public void run() {
+			AudioOutput audioOutput = AudioOutput.getInstance(buffer);
+			audioOutput.playBuffer();
+		}
 	}
+	
+//	public void setVolume(float volume) {
+//		SourceDataLine line;
+//		try {
+//            line = AudioSystem.getSourceDataLine(FORMAT);
+//            line.open(FORMAT);
+//        } catch (LineUnavailableException e) {
+//            throw new RuntimeException(e);
+//        }
+//		if (volume < 0f || volume > 1f)
+//	        throw new IllegalArgumentException("Volume not valid: " + volume);
+//		FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);        
+//        gainControl.setValue(20f * (float) Math.log10(volume));
+//	}
 	
 	private AudioProcessingUnit( ) {}
 	
