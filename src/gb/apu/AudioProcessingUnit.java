@@ -119,6 +119,11 @@ public class AudioProcessingUnit {
 
     // ======== End Channel 3 ========
 
+    // ======== Channel 4 ========
+
+    //Length
+    public int chan4Length = 0;
+
     private int calcSweep() {
         int preFreq = chan1RawFreq;
         int newFreq = preFreq >> chan1SweepNum;

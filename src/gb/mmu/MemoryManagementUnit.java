@@ -307,7 +307,19 @@ public class MemoryManagementUnit {
 				ram[index] = (byte) (value | 0xbf);
 				return;
 			}
+
+			// NR41 - Channel 4 length timer [write-only]
+			if (index == 0xff20) {
+				Main.apu.chan4Length = 64 - (value & 0b00111111);
+				ram[index] = (byte) (value | 0x3f);
+				return;
+			}
 			
+			// NR42 - Channel 4 volume & envelope
+			if (index == 0xff21) {
+				
+			}
+
 			// Wave pattern samples
 			if ((index >= 0xff30) && (index <= 0xff3f)) {
                 if (Main.apu.chan3Playback)
