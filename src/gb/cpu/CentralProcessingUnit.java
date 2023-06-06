@@ -134,7 +134,7 @@ public final class CentralProcessingUnit {
 
 			int aux = (interval - msSpent) > 0 ? (int) (interval - msSpent) : 0;
 
-			timer.setDelay(aux);
+			timer.setInitialDelay(aux);
 		}
 	};
 
