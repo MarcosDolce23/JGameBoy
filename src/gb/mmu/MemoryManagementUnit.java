@@ -156,7 +156,7 @@ public class MemoryManagementUnit {
 			// NR11 - length and pattern duty
 			if (index == 0xff11) {
 				Main.apu.chan1PatternDuty = value >> 6;
-                Main.apu.chan1Length = 64 - (value & 0b00111111);
+                Main.apu.chan1Length = 64 - (value & 0x3f);
 				
 				ram[index] = (byte) (value | 0x3f);
 				return;
@@ -310,14 +310,49 @@ public class MemoryManagementUnit {
 
 			// NR41 - Channel 4 length timer [write-only]
 			if (index == 0xff20) {
-				Main.apu.chan4Length = 64 - (value & 0b00111111);
+				Main.apu.chan4Length = 64 - (value & 0x3f);
 				ram[index] = (byte) (value | 0x3f);
 				return;
 			}
 			
 			// NR42 - Channel 4 volume & envelope
 			if (index == 0xff21) {
+				Main.apu.chan4EnvInit =	(value >> 4) / 15f;
+                Main.apu.chan4EnvVol = (value >> 4) / 15f;
+                
+                if (!Main.apu.chan4On)
+                	Main.apu.chan4EnvVol = 0;
+
+                Main.apu.chan4EnvInc = BitOperations.testBit(value, 3) ? true : false;
+                int sweep = Main.apu.chan4EnvSweep = value & 0b0111;
+
+                Main.apu.chan4EnvInterval = 512 * (sweep/64f);
+                Main.apu.chan4EnvOn = sweep > 0;
 				
+				ram[index] = (byte) value;
+				return;
+			}
+
+			if (index == 0xff22) {
+				Main.apu.chan4ClockShift = (value & 0xf0) >> 4;
+				Main.apu.chan4ClockDivider = value & 0x7;
+				if (Main.apu.chan4ClockDivider == 0) {
+					Main.apu.chan4ClockDivider = 0.5f;
+				}
+				
+				ram[index] = (byte) value;
+				return;
+			}
+
+			if (index == 0xff23) {
+				Main.apu.chan4CounterSelect = (BitOperations.testBit(value, 6)) ? true : false; 
+
+                // Trigger event
+                if (BitOperations.testBit(value, 7))
+                    Main.apu.chan4Trigger();
+
+				ram[index] = (byte) (value | 0xbf);
+				return;
 			}
 
 			// Wave pattern samples

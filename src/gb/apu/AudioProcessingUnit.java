@@ -76,13 +76,13 @@ public class AudioProcessingUnit {
 
     // Frequency timer
     private int chan2FreqTimer = 0;
-    
+
     // Length and pattern duty
     public int chan2Length = 0;
     public int chan2PatternDuty = 0;
     private int chan2DutyStep = 0;
 
-    //  Channel envelope
+    // Channel envelope
     public boolean chan2EnvOn = false;
     public boolean chan2EnvInc = false;
     public float chan2EnvInit = 0;
@@ -103,7 +103,7 @@ public class AudioProcessingUnit {
 
     // Frequency timer
     private int chan3FreqTimer = 0;
-    
+
     // Sample step
     public int chan3SampleStep = 0;
 
@@ -121,8 +121,24 @@ public class AudioProcessingUnit {
 
     // ======== Channel 4 ========
 
-    //Length
+    public boolean chan4On = false;
+
+    // Length
     public int chan4Length = 0;
+
+    // Frequency and settings
+    public boolean chan4CounterSelect = false;
+    public float chan4ClockShift = 0;
+    public float chan4ClockDivider = 0.5f;
+
+    // Channel envelope
+    public boolean chan4EnvOn = false;
+    public boolean chan4EnvInc = false;
+    public float chan4EnvInit = 0;
+    public int chan4EnvSweep = 0;
+    public int chan4EnvClocks = 0;
+    public float chan4EnvVol = 0;
+    public float chan4EnvInterval = 0;
 
     private int calcSweep() {
         int preFreq = chan1RawFreq;
@@ -149,6 +165,11 @@ public class AudioProcessingUnit {
     public void chan3Disable() {
         chan3On = false;
         chan3VolShift = 4;
+    }
+
+    private void chan4Disable() {
+        chan4On = false;
+        chan4EnvVol = 0; // Mute
     }
 
     private void chan1UpdateFreq(int cycles) {
@@ -227,6 +248,29 @@ public class AudioProcessingUnit {
         }
     }
 
+    private void chan4UpdateEnvelope() {
+        chan4EnvClocks++;
+
+        if (chan4EnvClocks >= chan4EnvInterval) {
+            chan4EnvClocks = 0;
+            if (!chan4EnvOn)
+                return;
+
+            // Inc
+            if (chan4EnvInc) {
+                chan4EnvVol += 1 / 15f;
+                if (chan4EnvVol > 1)
+                    chan4EnvVol = 1;
+            }
+            // Dec
+            else {
+                chan4EnvVol -= (1 / 15f);
+                if (chan4EnvVol < 0)
+                    chan4EnvVol = 0;
+            }
+        }
+    }
+
     private void chan1UpdateSweep() {
         if (--chan1SweepClocks > 0)
             return;
@@ -262,6 +306,11 @@ public class AudioProcessingUnit {
     private void chan3UpdateLength() {
         if (lengthStep && chan3CounterSelect && (--chan3Length == 0))
             chan3Disable();
+    }
+
+    private void chan4UpdateLength() {
+        if (lengthStep && chan4CounterSelect && (--chan4Length == 0))
+            chan4Disable();
     }
 
     public void chan1Trigger() {
@@ -309,6 +358,17 @@ public class AudioProcessingUnit {
             chan3Length = 256; // Full
     }
 
+    public void chan4Trigger() {
+        chan4On = true;
+
+        // Restart envelope
+        chan4EnvVol = chan4EnvInit;
+
+        // Restart length
+        if (chan4Length == 0)
+            chan4Length = 64; // Full
+    }
+
     // Buffer methods
     private boolean stepBuffer() {
         float sample = getSample();
@@ -335,8 +395,15 @@ public class AudioProcessingUnit {
             sample3 = aux / 15f;
         }
 
+        float sample4 = chan4GetSample() / 15f;
+
+        // System.out.println("Sample 1: " + sample1);
+        // System.out.println("Sample 2: " + sample2);
+        // System.out.println("Sample 3: " + sample3);
+        // System.out.println("Sample 4: " + sample4);
+
         // Mix ...
-        return (sample1 + sample2 + sample3) / 3;
+        return (sample1 + sample2 + sample3 + sample4) / 4;
     }
 
     private int chan3GetSample() {
@@ -344,6 +411,10 @@ public class AudioProcessingUnit {
             return (((Main.mmu.ram[0xff30 + (chan3SampleStep >> 1)] & 0xff) >> 4) & 0xf);
         }
         return (((Main.mmu.ram[0xff30 + (chan3SampleStep >> 1)] & 0xff) & 0xf));
+    }
+
+    private float chan4GetSample() {
+        return (float) (524288 / chan4ClockDivider / Math.pow(2, chan4ClockShift + 1));
     }
 
     private void copyBufferQueues() {
@@ -379,6 +450,12 @@ public class AudioProcessingUnit {
             // Channel 3
             if (chan3On) {
                 chan3UpdateLength();
+            }
+
+            // Channel 4
+            if (chan4On) {
+                chan4UpdateEnvelope();
+                chan4UpdateLength();
             }
 
             lengthStep = !lengthStep;
