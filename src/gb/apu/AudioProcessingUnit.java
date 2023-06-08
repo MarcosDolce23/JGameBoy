@@ -123,6 +123,13 @@ public class AudioProcessingUnit {
 
     public boolean chan4On = false;
 
+    public int chan4InitFreq = 0;
+    public int chan4RawFreq = 0;
+    public int chan4Freq = 0;
+
+    // Frequency timer
+    private int chan4FreqTimer = 0;
+
     // Length
     public int chan4Length = 0;
 
@@ -199,6 +206,15 @@ public class AudioProcessingUnit {
 
             chan3SampleStep++;
             chan3SampleStep &= 0x1f;
+        }
+    }
+
+    private void chan4UpdateFreq(int cycles) {
+        chan4FreqTimer -= cycles;
+        if (chan4FreqTimer <= 0) {
+            chan4FreqTimer += (2048 - chan4RawFreq) * 4;
+
+            chan4Freq = (int) Math.round(524288 / chan4ClockDivider / Math.pow(2, chan4ClockShift + 1));
         }
     }
 
@@ -395,15 +411,18 @@ public class AudioProcessingUnit {
             sample3 = aux / 15f;
         }
 
-        float sample4 = chan4GetSample() / 15f;
+        float sample4 = chan4Freq * chan4EnvVol;
 
         // System.out.println("Sample 1: " + sample1);
         // System.out.println("Sample 2: " + sample2);
         // System.out.println("Sample 3: " + sample3);
-        // System.out.println("Sample 4: " + sample4);
+        // if (sample4 != 0.0f)
+        //     System.out.println("Sample 4: " + sample4);
 
         // Mix ...
         return (sample1 + sample2 + sample3 + sample4) / 4;
+        // return (sample1 + sample2 + sample3) / 3;
+
     }
 
     private int chan3GetSample() {
@@ -411,10 +430,6 @@ public class AudioProcessingUnit {
             return (((Main.mmu.ram[0xff30 + (chan3SampleStep >> 1)] & 0xff) >> 4) & 0xf);
         }
         return (((Main.mmu.ram[0xff30 + (chan3SampleStep >> 1)] & 0xff) & 0xf));
-    }
-
-    private float chan4GetSample() {
-        return (float) (524288 / chan4ClockDivider / Math.pow(2, chan4ClockShift + 1));
     }
 
     private void copyBufferQueues() {
@@ -430,6 +445,7 @@ public class AudioProcessingUnit {
         chan1UpdateFreq(cycles);
         chan2UpdateFreq(cycles);
         chan3UpdateFreq(cycles);
+        chan4UpdateFreq(cycles);
 
         // Every 512 hz ...
         soundClocks += cycles;

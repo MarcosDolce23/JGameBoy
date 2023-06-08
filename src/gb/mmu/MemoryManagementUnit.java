@@ -185,6 +185,7 @@ public class MemoryManagementUnit {
                 Main.apu.chan1InitFreq &= 0x700; // Preserve top bits
                 Main.apu.chan1InitFreq |= value;
                 Main.apu.chan1RawFreq = Main.apu.chan1InitFreq;
+				ram[index] = (byte) value;
                 return;
 			}
 			
@@ -335,11 +336,12 @@ public class MemoryManagementUnit {
 
 			if (index == 0xff22) {
 				Main.apu.chan4ClockShift = (value & 0xf0) >> 4;
+				
 				Main.apu.chan4ClockDivider = value & 0x7;
 				if (Main.apu.chan4ClockDivider == 0) {
 					Main.apu.chan4ClockDivider = 0.5f;
 				}
-				
+
 				ram[index] = (byte) value;
 				return;
 			}
