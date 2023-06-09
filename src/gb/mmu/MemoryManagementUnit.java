@@ -156,7 +156,7 @@ public class MemoryManagementUnit {
 			// NR11 - length and pattern duty
 			if (index == 0xff11) {
 				Main.apu.chan1PatternDuty = value >> 6;
-                Main.apu.chan1Length = 64 - (value & 0b00111111);
+                Main.apu.chan1Length = 64 - (value & 0x3f);
 				
 				ram[index] = (byte) (value | 0x3f);
 				return;
@@ -185,6 +185,7 @@ public class MemoryManagementUnit {
                 Main.apu.chan1InitFreq &= 0x700; // Preserve top bits
                 Main.apu.chan1InitFreq |= value;
                 Main.apu.chan1RawFreq = Main.apu.chan1InitFreq;
+				ram[index] = (byte) value;
                 return;
 			}
 			
@@ -290,6 +291,7 @@ public class MemoryManagementUnit {
 			if (index == 0xff1d) {
 				Main.apu.chan3RawFreq &= 0x700; // Preserve top bits
                 Main.apu.chan3RawFreq |= value;
+				ram[index] = (byte) (value | 0xbf);
                 return;
 			}
 			
@@ -307,7 +309,98 @@ public class MemoryManagementUnit {
 				ram[index] = (byte) (value | 0xbf);
 				return;
 			}
+
+			// NR41 - Channel 4 length timer [write-only]
+			if (index == 0xff20) {
+				Main.apu.chan4Length = 64 - (value & 0x3f);
+				ram[index] = (byte) (value | 0x3f);
+				return;
+			}
 			
+			// NR42 - Channel 4 volume & envelope
+			if (index == 0xff21) {
+				Main.apu.chan4EnvInit =	(value >> 4) / 15f;
+                Main.apu.chan4EnvVol = (value >> 4) / 15f;
+                
+                if (!Main.apu.chan4On)
+                	Main.apu.chan4EnvVol = 0;
+
+                Main.apu.chan4EnvInc = BitOperations.testBit(value, 3) ? true : false;
+                int sweep = Main.apu.chan4EnvSweep = value & 0b0111;
+
+                Main.apu.chan4EnvInterval = 512 * (sweep/64f);
+                Main.apu.chan4EnvOn = sweep > 0;
+				
+				ram[index] = (byte) value;
+				return;
+			}
+
+			if (index == 0xff22) {
+				Main.apu.chan4ClockShift = (value & 0xf0) >> 4;
+				
+				Main.apu.chan4ClockDivider = value & 0x7;
+				if (Main.apu.chan4ClockDivider == 0) {
+					Main.apu.chan4ClockDivider = 0.5f;
+				}
+
+				Main.apu.LFSRMode = BitOperations.testBit(value, 3);
+				
+				int divisor;
+		        switch (value & 0b111) {
+		            case 0:
+		                divisor = 8;
+		                break;
+
+		            case 1:
+		                divisor = 16;
+		                break;
+
+		            case 2:
+		                divisor = 32;
+		                break;
+
+		            case 3:
+		                divisor = 48;
+		                break;
+
+		            case 4:
+		                divisor = 64;
+		                break;
+
+		            case 5:
+		                divisor = 80;
+		                break;
+
+		            case 6:
+		                divisor = 96;
+		                break;
+
+		            case 7:
+		                divisor = 112;
+		                break;
+
+		            default:
+		                throw new IllegalStateException();
+		        }
+		        
+		        Main.apu.chan4RawFreq = divisor << Main.apu.chan4ClockShift;
+//				Main.apu.chan4RawFreq = (int) (Math.round(24288 / Main.apu.chan4ClockDivider / Math.pow(2, Main.apu.chan4ClockShift + 1)));
+//				Main.apu.chan4RawFreq = (int) (Math.round((Main.apu.chan4ClockDivider * Math.pow(2, Main.apu.chan4ClockShift) * 262144)));
+				ram[index] = (byte) value;
+				return;
+			}
+
+			if (index == 0xff23) {
+				Main.apu.chan4CounterSelect = (BitOperations.testBit(value, 6)) ? true : false; 
+
+                // Trigger event
+                if (BitOperations.testBit(value, 7))
+                    Main.apu.chan4Trigger();
+
+				ram[index] = (byte) (value | 0xbf);
+				return;
+			}
+
 			// Wave pattern samples
 			if ((index >= 0xff30) && (index <= 0xff3f)) {
                 if (Main.apu.chan3Playback)

@@ -41,7 +41,7 @@ public class AudioOutput {
             throw new RuntimeException(e);
         }
 
-        setVolume(line, 0.25f);
+         setVolume(line, 0.25f);
 
         line.start();
         line.write(buffer, 0, buffer.length);
