@@ -3,7 +3,7 @@ package gb.apu;
 public abstract class Channel {
 	
     public boolean chanOn = false;
-    public boolean lengthStep = false;
+    public static boolean lengthStep = false;
 
     // Frequency and settings
     public boolean chanCounterSelect = false;

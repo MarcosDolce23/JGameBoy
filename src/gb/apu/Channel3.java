@@ -41,6 +41,17 @@ public class Channel3 extends Channel {
 
 	@Override
 	float getSample() {
+        if (chanVolShift == 4)
+            return 0;
+        else {
+            int aux = 0;
+            aux = chanGetSample();
+            aux = (aux + (aux - 0xf)) >> chanVolShift;
+            return aux / 15f;
+        }
+	}
+	
+	private int chanGetSample() {
 		if ((chanSampleStep & 1) == 0) {
             return (((Main.mmu.ram[0xff30 + (chanSampleStep >> 1)] & 0xff) >> 4) & 0xf);
         }
