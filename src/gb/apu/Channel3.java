@@ -51,6 +51,12 @@ public class Channel3 extends Channel {
         }
 	}
 	
+	@Override
+	public void chanDisable() {
+        chanOn = false;
+        chanVolShift = 4; // Mute
+    }
+	
 	private int chanGetSample() {
 		if ((chanSampleStep & 1) == 0) {
             return (((Main.mmu.ram[0xff30 + (chanSampleStep >> 1)] & 0xff) >> 4) & 0xf);

@@ -22,6 +22,7 @@ public class AudioProcessingUnit {
 
     public boolean soundOn = false;
 
+    // Instantiate channels 
     public Channel1 ch1 = new Channel1();
     public Channel2 ch2 = new Channel2();
     public Channel3 ch3 = new Channel3();
@@ -40,20 +41,7 @@ public class AudioProcessingUnit {
     }
 
     private float mixSamples() {
-        // Channel 1
-        float sample1 = ch1.getSample();
-
-        // Channel 2
-        float sample2 = ch2.getSample();
-
-        // Channel 3
-        float sample3 = ch3.getSample();
-
-        float sample4 = ch4.getSample();
-
-        // Mix ...
-        return (sample1 + sample2 + sample3 + sample4) / 4;
-
+        return (ch1.getSample() + ch2.getSample() + ch3.getSample() + ch4.getSample()) / 4;
     }
 
     private void copyBufferQueues() {
