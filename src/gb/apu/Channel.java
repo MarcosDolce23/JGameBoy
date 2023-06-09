@@ -29,7 +29,7 @@ public abstract class Channel {
             { -1, 1, 1, 1, 1, 1, 1, -1 } // 75%
     };
     
-    protected void chanDisable() {
+    public void chanDisable() {
         chanOn = false;
         chanEnvVol = 0; // Mute
     }
@@ -63,7 +63,7 @@ public abstract class Channel {
     }
     
     abstract void chanUpdateFreq(int cycles);
-    abstract void chanTrigger();
+    public abstract void chanTrigger();
     abstract float getSample();
 
 }

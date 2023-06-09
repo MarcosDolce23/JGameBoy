@@ -22,10 +22,10 @@ public class AudioProcessingUnit {
 
     public boolean soundOn = false;
 
-    Channel1 ch1 = new Channel1();
-    Channel2 ch2 = new Channel2();
-    Channel3 ch3 = new Channel3();
-    Channel4 ch4 = new Channel4();
+    public Channel1 ch1 = new Channel1();
+    public Channel2 ch2 = new Channel2();
+    public Channel3 ch3 = new Channel3();
+    public Channel4 ch4 = new Channel4();
     
     private boolean soundOn() {
         return BitOperations.testBit(Main.mmu.getByte(0xff26), 7);

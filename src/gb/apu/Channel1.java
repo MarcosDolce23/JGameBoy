@@ -29,7 +29,7 @@ public class Channel1 extends Channel {
 	}
 
 	@Override
-	void chanTrigger() {
+	public void chanTrigger() {
         chanOn = true;
 
         // Restart envelope

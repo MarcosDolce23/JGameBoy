@@ -26,7 +26,7 @@ public class Channel3 extends Channel {
 	}
 
 	@Override
-	void chanTrigger() {
+	public void chanTrigger() {
         if (!chanPlayback)
             return;
 

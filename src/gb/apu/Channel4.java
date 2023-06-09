@@ -6,7 +6,10 @@ public class Channel4 extends Channel {
 	
 	public int chanFreq = 0;
 	private int LFSR = 0x7fff;
-	private boolean LFSRWidth = false;
+	
+	public int chanClockShift = 0;
+	public float chanClockDivider = 0;
+	public boolean LFSRWidth = false;
 	
 	@Override
 	void chanUpdateFreq(int cycles) {
@@ -19,7 +22,7 @@ public class Channel4 extends Channel {
 	}
 
 	@Override
-	void chanTrigger() {
+	public void chanTrigger() {
         chanOn = true;
 
         // Restart envelope
