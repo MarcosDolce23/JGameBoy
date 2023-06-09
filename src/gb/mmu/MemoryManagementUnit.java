@@ -291,6 +291,7 @@ public class MemoryManagementUnit {
 			if (index == 0xff1d) {
 				Main.apu.chan3RawFreq &= 0x700; // Preserve top bits
                 Main.apu.chan3RawFreq |= value;
+				ram[index] = (byte) (value | 0xbf);
                 return;
 			}
 			
@@ -342,6 +343,49 @@ public class MemoryManagementUnit {
 					Main.apu.chan4ClockDivider = 0.5f;
 				}
 
+				Main.apu.LFSRMode = BitOperations.testBit(value, 3);
+				
+				int divisor;
+		        switch (value & 0b111) {
+		            case 0:
+		                divisor = 8;
+		                break;
+
+		            case 1:
+		                divisor = 16;
+		                break;
+
+		            case 2:
+		                divisor = 32;
+		                break;
+
+		            case 3:
+		                divisor = 48;
+		                break;
+
+		            case 4:
+		                divisor = 64;
+		                break;
+
+		            case 5:
+		                divisor = 80;
+		                break;
+
+		            case 6:
+		                divisor = 96;
+		                break;
+
+		            case 7:
+		                divisor = 112;
+		                break;
+
+		            default:
+		                throw new IllegalStateException();
+		        }
+		        
+		        Main.apu.chan4RawFreq = divisor << Main.apu.chan4ClockShift;
+//				Main.apu.chan4RawFreq = (int) (Math.round(24288 / Main.apu.chan4ClockDivider / Math.pow(2, Main.apu.chan4ClockShift + 1)));
+//				Main.apu.chan4RawFreq = (int) (Math.round((Main.apu.chan4ClockDivider * Math.pow(2, Main.apu.chan4ClockShift) * 262144)));
 				ram[index] = (byte) value;
 				return;
 			}

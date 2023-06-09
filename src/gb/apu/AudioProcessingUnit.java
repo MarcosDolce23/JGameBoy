@@ -123,6 +123,21 @@ public class AudioProcessingUnit {
 
     public boolean chan4On = false;
 
+    public int LFSR = 0x7fff;
+    public boolean LFSRMode = false;
+
+    private int nextBitLFSR() {
+        boolean x = ((LFSR & 1) ^ ((LFSR & 2) >> 1)) != 0;
+        LFSR = LFSR >> 1;
+        LFSR = LFSR | (x ? (1 << 14) : 0);
+        if (LFSRMode) {
+            LFSR = LFSR | (x ? (1 << 6) : 0);
+        }
+        if ((1 & ~LFSR) == 0)
+        	return -1;
+        return 1;
+    }
+
     public int chan4InitFreq = 0;
     public int chan4RawFreq = 0;
     public int chan4Freq = 0;
@@ -135,7 +150,7 @@ public class AudioProcessingUnit {
 
     // Frequency and settings
     public boolean chan4CounterSelect = false;
-    public float chan4ClockShift = 0;
+    public int chan4ClockShift = 0;
     public float chan4ClockDivider = 0.5f;
 
     // Channel envelope
@@ -212,9 +227,9 @@ public class AudioProcessingUnit {
     private void chan4UpdateFreq(int cycles) {
         chan4FreqTimer -= cycles;
         if (chan4FreqTimer <= 0) {
-            chan4FreqTimer += (2048 - chan4RawFreq) * 4;
+            chan4FreqTimer += chan4RawFreq;
 
-            chan4Freq = (int) Math.round(524288 / chan4ClockDivider / Math.pow(2, chan4ClockShift + 1));
+            chan4Freq = nextBitLFSR();
         }
     }
 
@@ -379,6 +394,7 @@ public class AudioProcessingUnit {
 
         // Restart envelope
         chan4EnvVol = chan4EnvInit;
+        LFSR = 0x7fff;
 
         // Restart length
         if (chan4Length == 0)
