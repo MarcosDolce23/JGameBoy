@@ -47,8 +47,6 @@ public class Channel4 extends Channel {
         if (LFSRWidth) {
             LFSR = LFSR | (x ? (1 << 6) : 0);
         }
-        if ((1 & ~LFSR) == 0)
-        	return -1;
-        return 1;
+        return 1 & ~LFSR;
     }
 }
