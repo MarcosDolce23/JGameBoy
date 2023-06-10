@@ -400,15 +400,6 @@ public class MemoryManagementUnit {
 				ram[index] = (byte) (value | 0xbf);
 				return;
 			}
-
-			// Wave pattern samples
-			if ((index >= 0xff30) && (index <= 0xff3f)) {
-                if (Main.apu.ch3.chanPlayback)
-                    ram[0xff30 + (Main.apu.ch3.chanSampleStep >> 1)] = (byte) value;
-                else
-                    ram[index] = (byte) value;
-                return;
-			}
 			
 			// ---- AUDIO SETTINGS ---- //
             // NR50 - i need this so pokemon blue dont freeze
@@ -421,8 +412,17 @@ public class MemoryManagementUnit {
 			if (index == 0xff26) {
 				Main.apu.soundOn = BitOperations.testBit(value, 7) ? true : false;
 
-				ram[index] = (byte) (value | 0x7f);
+				ram[index] |= (byte) (value & 0x80);
 				return;
+			}
+			
+			// Wave pattern samples
+			if ((index >= 0xff30) && (index <= 0xff3f)) {
+                if (Main.apu.ch3.chanPlayback)
+                    ram[0xff30 + (Main.apu.ch3.chanSampleStep >> 1)] = (byte) value;
+                else
+                    ram[index] = (byte) value;
+                return;
 			}
 			
 			if (index == 0xff40) {
@@ -542,7 +542,7 @@ public class MemoryManagementUnit {
 //		ram[0xff23] = (byte) 0xbf;
 //		ram[0xff24] = (byte) 0x77;
 //		ram[0xff25] = (byte) 0xf3;
-//		ram[0xff26] = (byte) 0xf1;
+		ram[0xff26] = (byte) 0xf1;
 		ram[0xff40] = (byte) 0x91;
 		ram[0xff41] = (byte) 0x86;
 		ram[0xff46] = (byte) 0xff;

@@ -178,8 +178,17 @@ public final class CentralProcessingUnit {
 		handleTimer();
 		Main.ppu.handleScan(cycles);
 		Main.apu.handleSound(cycles);
-
+		test();
 		return cycles;
+	}
+	
+	private void test() {
+//	    blarggs test - serial output
+		if (Main.mmu.getByte(0xff02) == 0x81) {
+		    char c = (char) Main.mmu.getByte(0xff01);
+		    System.out.print(c);
+		    Main.mmu.setByte(0xff02, 0x00);
+		}
 	}
 
 	private void manageInterrupt(int counter) {
