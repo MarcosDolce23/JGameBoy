@@ -1,5 +1,7 @@
 package gb.apu;
 
+import gb.utils.BitOperations;
+
 // Sound Channel 4 — Noise
 
 public class Channel4 extends Channel {
@@ -49,4 +51,91 @@ public class Channel4 extends Channel {
         }
         return 1 & ~LFSR;
     }
+
+	@Override
+	public void NRX1(int value) {
+		chanLength = 64 - (value & 0x3f);
+	}
+
+	@Override
+	public void NRX2(int value) {
+		chanEnvInit =	(value >> 4) / 15f;
+        chanEnvVol = (value >> 4) / 15f;
+        
+        if (!chanOn)
+        	chanEnvVol = 0;
+
+        chanEnvInc = BitOperations.testBit(value, 3) ? true : false;
+        int sweep = chanEnvSweep = value & 0b0111;
+
+        chanEnvInterval = 512 * (sweep/64f);
+        chanEnvOn = sweep > 0;
+	}
+
+	@Override
+	public void NRX3(int value) {
+		chanClockShift = (value & 0xf0) >> 4;
+		
+		chanClockDivider = value & 0x7;
+		if (chanClockDivider == 0) {
+			chanClockDivider = 0.5f;
+		}
+
+		LFSRWidth = BitOperations.testBit(value, 3);
+		
+		int divisor;
+        switch (value & 0b111) {
+            case 0:
+                divisor = 8;
+                break;
+
+            case 1:
+                divisor = 16;
+                break;
+
+            case 2:
+                divisor = 32;
+                break;
+
+            case 3:
+                divisor = 48;
+                break;
+
+            case 4:
+                divisor = 64;
+                break;
+
+            case 5:
+                divisor = 80;
+                break;
+
+            case 6:
+                divisor = 96;
+                break;
+
+            case 7:
+                divisor = 112;
+                break;
+
+            default:
+                throw new IllegalStateException();
+        }
+        
+        chanRawFreq = divisor << chanClockShift;
+//		Main.apu.chan4RawFreq = (int) (Math.round(24288 / Main.apu.chan4ClockDivider / Math.pow(2, Main.apu.chan4ClockShift + 1)));
+//		Main.apu.chan4RawFreq = (int) (Math.round((Main.apu.chan4ClockDivider * Math.pow(2, Main.apu.chan4ClockShift) * 262144)));
+	}
+
+	@Override
+	public void NRX4(int value) {
+		chanCounterSelect = (BitOperations.testBit(value, 6)) ? true : false; 
+
+        // Trigger event
+        if (BitOperations.testBit(value, 7))
+            chanTrigger();
+
+	}
+
+	@Override
+	public void NRX0(int value) {}
 }

@@ -65,5 +65,9 @@ public abstract class Channel {
     abstract void chanUpdateFreq(int cycles);
     public abstract void chanTrigger();
     abstract float getSample();
-
+    public abstract void NRX0(int value);
+    public abstract void NRX1(int value);
+    public abstract void NRX2(int value);
+    public abstract void NRX3(int value);
+    public abstract void NRX4(int value);
 }

@@ -1,5 +1,7 @@
 package gb.apu;
 
+import gb.utils.BitOperations;
+
 // Sound Channel 1 — Pulse with wavelength sweep
 
 public class Channel1 extends Channel {
@@ -84,5 +86,53 @@ public class Channel1 extends Channel {
         } else
             chanSweepClocks = 8;
     }
+	
+	@Override
+	public void NRX0(int value) {
+        chanSweepTime = 512 * ((value >> 4) / 128);
+        chanSweepDec = BitOperations.testBit(value, 3) ? true : false;
+        chanSweepNum = value & 0b0111;
+	}
+
+	@Override
+	public void NRX1(int value) {
+		chanPatternDuty = value >> 6;
+        chanLength = 64 - (value & 0x3f);
+	}
+
+	@Override
+	public void NRX2(int value) {
+		chanEnvInit =	(value >> 4) / 15f;
+        chanEnvVol = (value >> 4) / 15f;
+        
+        if (!chanOn)
+        	chanEnvVol = 0;
+
+        chanEnvInc = BitOperations.testBit(value, 3) ? true : false;
+        int sweep = chanEnvSweep = value & 0b0111;
+
+        chanEnvInterval = 512 * (sweep/64f);
+        chanEnvOn = sweep > 0;
+	}
+
+	@Override
+	public void NRX3(int value) {
+        chanInitFreq &= 0x700; // Preserve top bits
+        chanInitFreq |= value;
+        chanRawFreq = chanInitFreq;
+	}
+
+	@Override
+	public void NRX4(int value) {
+        chanCounterSelect = (BitOperations.testBit(value, 6)) ? true : false; 
+
+        chanInitFreq &= 0xff; // Preserve bottom bits
+        chanInitFreq |= (value & 0x7) << 8;
+        chanRawFreq = chanInitFreq;
+
+        // Trigger event
+        if (BitOperations.testBit(value, 7))
+            chanTrigger();
+	}
 
 }

@@ -144,266 +144,139 @@ public class MemoryManagementUnit {
             // ----- SQUARE CHANEL 1 ----- //
             // NR10 - sweep reg
 			if (index == 0xff10) {
-                Main.apu.ch1.chanSweepTime = 512 * ((value >> 4) / 128);
-
-                Main.apu.ch1.chanSweepDec = BitOperations.testBit(value, 3) ? true : false;
-                Main.apu.ch1.chanSweepNum = value & 0b0111;
-				
+				Main.apu.ch1.NRX0(value);
 				ram[index] = (byte) value;
 				return;
 			}
 			
 			// NR11 - length and pattern duty
 			if (index == 0xff11) {
-				Main.apu.ch1.chanPatternDuty = value >> 6;
-                Main.apu.ch1.chanLength = 64 - (value & 0x3f);
-				
-				ram[index] = (byte) (value | 0x3f);
+				Main.apu.ch1.NRX1(value);
+				ram[index] |= (byte) (value & 0x3f);
 				return;
 			}
 			
 			// NR12 - volume envelope
 			if (index == 0xff12) {
-                Main.apu.ch1.chanEnvInit =	(value >> 4) / 15f;
-                Main.apu.ch1.chanEnvVol = (value >> 4) / 15f;
-                
-                if (!Main.apu.ch1.chanOn)
-                	Main.apu.ch1.chanEnvVol = 0;
-
-                Main.apu.ch1.chanEnvInc = BitOperations.testBit(value, 3) ? true : false;
-                int sweep = Main.apu.ch1.chanEnvSweep = value & 0b0111;
-
-                Main.apu.ch1.chanEnvInterval = 512 * (sweep/64f);
-                Main.apu.ch1.chanEnvOn = sweep > 0;
-				
+                Main.apu.ch1.NRX2(value);
 				ram[index] = (byte) value;
 				return;
 			}
 			
 			// NR13 - lower 8 bits of frequency
 			if (index == 0xff13) {
-                Main.apu.ch1.chanInitFreq &= 0x700; // Preserve top bits
-                Main.apu.ch1.chanInitFreq |= value;
-                Main.apu.ch1.chanRawFreq = Main.apu.ch1.chanInitFreq;
+                Main.apu.ch1.NRX3(value);
 				ram[index] = (byte) value;
                 return;
 			}
 			
 			// NR14 - higher 3 bits of frequency
 			if (index == 0xff14) {
-                Main.apu.ch1.chanCounterSelect = (BitOperations.testBit(value, 6)) ? true : false; 
-
-                Main.apu.ch1.chanInitFreq &= 0xff; // Preserve bottom bits
-                Main.apu.ch1.chanInitFreq |= (value & 0x7) << 8;
-                Main.apu.ch1.chanRawFreq = Main.apu.ch1.chanInitFreq;
-
-                // Trigger event
-                if (BitOperations.testBit(value, 7))
-                    Main.apu.ch1.chanTrigger();
-
-				ram[index] = (byte) (value | 0xbf);
+                Main.apu.ch1.NRX4(value);
+				ram[index] = (byte) value;
 				return;
 			}
 			
 			// ---- SQUARE CHANNEL 2 ---- //
             // NR21 - length and pattern duty
 			if (index == 0xff16) {
-				Main.apu.ch2.chanPatternDuty = value >> 6;
-                Main.apu.ch2.chanLength = 64 - (value & 0x3f);
-                
-				ram[index] = (byte) (value | 0x3f);
+				Main.apu.ch2.NRX1(value);
+                ram[index] |= (byte) (value & 0x3f);
 				return;
 			}
 			
 			// NR22 - volume envelope
 			if (index == 0xff17) {
-				Main.apu.ch2.chanEnvInit = (value >> 4) / 15f;
-		        Main.apu.ch2.chanEnvVol = (value >> 4) / 15f;
-
-		        Main.apu.ch2.chanEnvInc = BitOperations.testBit(value, 3) ? true : false;
-		        int sweep = Main.apu.ch2.chanEnvSweep = value & 0x7;
-
-		        Main.apu.ch2.chanEnvInterval = 512 * (sweep/64f);
-		        Main.apu.ch2.chanEnvOn = sweep > 0;
-		                
+				Main.apu.ch2.NRX2(value);
 				ram[index] = (byte) value;
 				return;
 			}
 			
 			// NR23 - lower 8 bits of frequency
 			if (index == 0xff18) {
-				Main.apu.ch2.chanRawFreq &= 0x700; // Preserve top bits
-				Main.apu.ch2.chanRawFreq |= value;
+				Main.apu.ch2.NRX3(value);
+				ram[index] = (byte) value;
                 return;
 			}
 			
 			// NR24 - higher 3 bits of frequency
 			if (index == 0xff19) {
-				Main.apu.ch2.chanCounterSelect = BitOperations.testBit(value, 6) ? true : false; 
-
-                Main.apu.ch2.chanRawFreq &= 0xff; // Preserve bottom bits
-                Main.apu.ch2.chanRawFreq |= (value & 0x7) << 8;
-
-                // Trigger event
-                if (BitOperations.testBit(value, 7))
-                    Main.apu.ch2.chanTrigger();
-				
-				ram[index] = (byte) (value | 0xbf);
+				Main.apu.ch2.NRX4(value);
+				ram[index] = (byte) value;
 				return;
 			}
 			
 			// ---- WAVE CHANNEL 3 ---- //
             // NR30 - playback enable
 			if (index == 0xff1a) {
-				if (!(Main.apu.ch3.chanPlayback = BitOperations.testBit(value, 7) ? true : false))
-                    Main.apu.ch3.chanDisable();
-				
+				Main.apu.ch3.NRX0(value);
 				ram[index] = (byte) (value | 0x7f);
 				return;
 			}
 			
 			// NR31 - length
 			if (index == 0xff1b) {
-				Main.apu.ch3.chanLength = 256 - value;
+				Main.apu.ch3.NRX1(value);
                 return;
 			}
 			
 			// NR32 - volume shift
 			if (index == 0xff1c) {
-				int volshift = (value & 0x60) >> 5;
-                    
-                if (volshift != 0) {
-                	Main.apu.ch3.chanInitVolShift = volshift - 1;
-                	volshift = volshift - 1;
-                } else {
-                	Main.apu.ch3.chanInitVolShift = 4;
-                	volshift = 4;
-                }
-
-                if (Main.apu.ch3.chanOn)
-                    Main.apu.ch3.chanVolShift = volshift;
-				
+				Main.apu.ch3.NRX2(value);
 				ram[index] = (byte) (value | 0x9f);
 				return;
 			}
 			
 			// NR33 - lower 8 bits of frequency
 			if (index == 0xff1d) {
-				Main.apu.ch3.chanRawFreq &= 0x700; // Preserve top bits
-                Main.apu.ch3.chanRawFreq |= value;
+				Main.apu.ch3.NRX3(value);
 				ram[index] = (byte) (value | 0xbf);
                 return;
 			}
 			
 			// NR34 - higher 3 bits of frequency
 			if (index == 0xff1e) {
-				Main.apu.ch3.chanCounterSelect = BitOperations.testBit(value, 6) ? true : false; 
-
-                Main.apu.ch3.chanRawFreq &= 0xff; // Preserve bottom bits
-                Main.apu.ch3.chanRawFreq |= (value & 0b0111) << 8;
-
-                // Trigger event
-                if (BitOperations.testBit(value, 7))
-                    Main.apu.ch3.chanTrigger();
-				
-				ram[index] = (byte) (value | 0xbf);
+				Main.apu.ch3.NRX4(value);
+				ram[index] = (byte) value;
 				return;
 			}
 
 			// NR41 - Channel 4 length timer [write-only]
 			if (index == 0xff20) {
-				Main.apu.ch4.chanLength = 64 - (value & 0x3f);
-				ram[index] = (byte) (value | 0x3f);
+				Main.apu.ch4.NRX1(value);
+				ram[index] |= (byte) (value & 0x3f);
 				return;
 			}
 			
 			// NR42 - Channel 4 volume & envelope
 			if (index == 0xff21) {
-				Main.apu.ch4.chanEnvInit =	(value >> 4) / 15f;
-                Main.apu.ch4.chanEnvVol = (value >> 4) / 15f;
-                
-                if (!Main.apu.ch4.chanOn)
-                	Main.apu.ch4.chanEnvVol = 0;
-
-                Main.apu.ch4.chanEnvInc = BitOperations.testBit(value, 3) ? true : false;
-                int sweep = Main.apu.ch4.chanEnvSweep = value & 0b0111;
-
-                Main.apu.ch4.chanEnvInterval = 512 * (sweep/64f);
-                Main.apu.ch4.chanEnvOn = sweep > 0;
-				
+				Main.apu.ch4.NRX2(value);
 				ram[index] = (byte) value;
 				return;
 			}
-
+			
+			// NR43
 			if (index == 0xff22) {
-				Main.apu.ch4.chanClockShift = (value & 0xf0) >> 4;
-				
-				Main.apu.ch4.chanClockDivider = value & 0x7;
-				if (Main.apu.ch4.chanClockDivider == 0) {
-					Main.apu.ch4.chanClockDivider = 0.5f;
-				}
-
-				Main.apu.ch4.LFSRWidth = BitOperations.testBit(value, 3);
-				
-				int divisor;
-		        switch (value & 0b111) {
-		            case 0:
-		                divisor = 8;
-		                break;
-
-		            case 1:
-		                divisor = 16;
-		                break;
-
-		            case 2:
-		                divisor = 32;
-		                break;
-
-		            case 3:
-		                divisor = 48;
-		                break;
-
-		            case 4:
-		                divisor = 64;
-		                break;
-
-		            case 5:
-		                divisor = 80;
-		                break;
-
-		            case 6:
-		                divisor = 96;
-		                break;
-
-		            case 7:
-		                divisor = 112;
-		                break;
-
-		            default:
-		                throw new IllegalStateException();
-		        }
-		        
-		        Main.apu.ch4.chanRawFreq = divisor << Main.apu.ch4.chanClockShift;
-//				Main.apu.chan4RawFreq = (int) (Math.round(24288 / Main.apu.chan4ClockDivider / Math.pow(2, Main.apu.chan4ClockShift + 1)));
-//				Main.apu.chan4RawFreq = (int) (Math.round((Main.apu.chan4ClockDivider * Math.pow(2, Main.apu.chan4ClockShift) * 262144)));
+				Main.apu.ch4.NRX3(value);
 				ram[index] = (byte) value;
 				return;
 			}
-
+			
+			// NR44
 			if (index == 0xff23) {
-				Main.apu.ch4.chanCounterSelect = (BitOperations.testBit(value, 6)) ? true : false; 
-
-                // Trigger event
-                if (BitOperations.testBit(value, 7))
-                    Main.apu.ch4.chanTrigger();
-
-				ram[index] = (byte) (value | 0xbf);
+				Main.apu.ch4.NRX4(value);
+				ram[index] = (byte) value;
 				return;
 			}
 			
 			// ---- AUDIO SETTINGS ---- //
             // NR50 - i need this so pokemon blue dont freeze
 			if (index == 0xff24) {
+				ram[index] = (byte) value;
+				return;
+			}
+			
+			if (index == 0xff25) {
 				ram[index] = (byte) value;
 				return;
 			}
@@ -525,24 +398,24 @@ public class MemoryManagementUnit {
 		ram[0xff04] = (byte) 0xab;
 		ram[0xff07] = (byte) 0xf8;
 		ram[0xff0f] = (byte) 0xe1;
-//		ram[0xff10] = (byte) 0x80;
-//		ram[0xff11] = (byte) 0xbf;
-//		ram[0xff12] = (byte) 0xf3;
-//		ram[0xff13] = (byte) 0xff;
-//		ram[0xff14] = (byte) 0xbf;
-//		ram[0xff16] = (byte) 0x3f;
-//		ram[0xff18] = (byte) 0xff;
-//		ram[0xff19] = (byte) 0xbf;
-//		ram[0xff1a] = (byte) 0x7f;
-//		ram[0xff1b] = (byte) 0xff;
-//		ram[0xff1c] = (byte) 0x9f;
-//		ram[0xff1d] = (byte) 0xff;
-//		ram[0xff1e] = (byte) 0xbf;
-//		ram[0xff20] = (byte) 0xff;
-//		ram[0xff23] = (byte) 0xbf;
-//		ram[0xff24] = (byte) 0x77;
-//		ram[0xff25] = (byte) 0xf3;
-		ram[0xff26] = (byte) 0xf1;
+		ram[0xff10] = (byte) 0x80;
+		ram[0xff11] = (byte) 0xbf;
+		ram[0xff12] = (byte) 0xf3;
+		ram[0xff13] = (byte) 0xff;
+		ram[0xff14] = (byte) 0xbf;
+		ram[0xff16] = (byte) 0x3f;
+		ram[0xff18] = (byte) 0xff;
+		ram[0xff19] = (byte) 0xbf;
+		ram[0xff1a] = (byte) 0x7f;
+		ram[0xff1b] = (byte) 0xff;
+		ram[0xff1c] = (byte) 0x9f;
+		ram[0xff1d] = (byte) 0xff;
+		ram[0xff1e] = (byte) 0xbf;
+		ram[0xff20] = (byte) 0xff;
+		ram[0xff23] = (byte) 0xbf;
+		ram[0xff24] = (byte) 0x77;
+		ram[0xff25] = (byte) 0xf3;
+//		ram[0xff26] = (byte) 0xf1;
 		ram[0xff40] = (byte) 0x91;
 		ram[0xff41] = (byte) 0x86;
 		ram[0xff46] = (byte) 0xff;
