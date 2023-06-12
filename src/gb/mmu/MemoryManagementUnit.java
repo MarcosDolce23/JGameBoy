@@ -464,33 +464,33 @@ public class MemoryManagementUnit {
 			if (index == 0xff26) {
 				if (BitOperations.testBit(value, 7)) {
 					Main.apu.soundOn = true;
+					ram[index] |= (byte) (value & 0x80);
 				} else {
 					Main.apu.soundOn = false;
-//					ram[0xff10] = 0;
-//					ram[0xff11] = 0;
-//					ram[0xff12] = 0;
-//					ram[0xff13] = 0;
-//					ram[0xff14] = 0;
-//					ram[0xff15] = 0;
-//					ram[0xff17] = 0;
-//					ram[0xff17] = 0;
-//					ram[0xff18] = 0;
-//					ram[0xff19] = 0;
-//					ram[0xff1a] = 0;
-//					ram[0xff1b] = 0;
-//					ram[0xff1c] = 0;
-//					ram[0xff1d] = 0;
-//					ram[0xff1e] = 0;
-//					ram[0xff1f] = 0;
-//					ram[0xff20] = 0;
-//					ram[0xff21] = 0;
-//					ram[0xff22] = 0;
-//					ram[0xff23] = 0;
-//					ram[0xff24] = 0;
-//					ram[0xff25] = 0;
-					ram[0xff26] = (byte) (ram[0xff26] & 0x80);
+					ram[0xff10] = 0;
+					ram[0xff11] = 0;
+					ram[0xff12] = 0;
+					ram[0xff13] = 0;
+					ram[0xff14] = 0;
+					ram[0xff15] = 0;
+					ram[0xff17] = 0;
+					ram[0xff17] = 0;
+					ram[0xff18] = 0;
+					ram[0xff19] = 0;
+					ram[0xff1a] = 0;
+					ram[0xff1b] = 0;
+					ram[0xff1c] = 0;
+					ram[0xff1d] = 0;
+					ram[0xff1e] = 0;
+					ram[0xff1f] = 0;
+					ram[0xff20] = 0;
+					ram[0xff21] = 0;
+					ram[0xff22] = 0;
+					ram[0xff23] = 0;
+					ram[0xff24] = 0;
+					ram[0xff25] = 0;
+					ram[0xff26] = 0;
 				}
-				ram[index] &= (byte) ((value & 0x80) | 0x38);
 				return;
 			}
 
