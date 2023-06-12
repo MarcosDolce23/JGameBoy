@@ -473,7 +473,7 @@ public class MemoryManagementUnit {
 					ram[0xff13] = 0;
 					ram[0xff14] = 0;
 					ram[0xff15] = 0;
-					ram[0xff17] = 0;
+					ram[0xff16] = 0;
 					ram[0xff17] = 0;
 					ram[0xff18] = 0;
 					ram[0xff19] = 0;
