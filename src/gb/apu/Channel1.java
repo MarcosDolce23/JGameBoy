@@ -1,5 +1,6 @@
 package gb.apu;
 
+import gb.Main;
 import gb.utils.BitOperations;
 
 // Sound Channel 1 — Pulse with wavelength sweep
@@ -12,7 +13,7 @@ public class Channel1 extends Channel {
     public int chanPatternDuty = 0;
     private int chanDutyStep = 0;
     
- // Sweep register
+    // Sweep register
     public boolean chanSweepOn = false;
     public boolean chanSweepDec = false;
     public int chanSweepTime = 0;
@@ -32,7 +33,7 @@ public class Channel1 extends Channel {
 
 	@Override
 	public void chanTrigger() {
-        chanOn = true;
+        chanOn();
 
         // Restart envelope
         chanEnvVol = chanEnvInit;
@@ -105,7 +106,7 @@ public class Channel1 extends Channel {
 		chanEnvInit =	(value >> 4) / 15f;
         chanEnvVol = (value >> 4) / 15f;
         
-        if (!chanOn)
+        if(!chanEnabled())
         	chanEnvVol = 0;
 
         chanEnvInc = BitOperations.testBit(value, 3) ? true : false;
@@ -133,6 +134,37 @@ public class Channel1 extends Channel {
         // Trigger event
         if (BitOperations.testBit(value, 7))
             chanTrigger();
+	}
+
+	@Override
+	void resetChan() {
+	    chanInitFreq = 0;
+
+		// Pattern duty
+	    chanPatternDuty = 0;
+	    chanDutyStep = 0;
+	    
+	    // Sweep register
+	    chanSweepOn = false;
+	    chanSweepDec = false;
+	    chanSweepTime = 0;
+	    chanSweepNum = 0;
+	    chanSweepClocks = 0;
+	}
+
+	@Override
+	void chanOn() {
+		Main.mmu.ram[0xff26] |= 0x1;
+	}
+
+	@Override
+	void chanOff() {
+		Main.mmu.ram[0xff26] &= 0xfe;
+	}
+
+	@Override
+	boolean chanEnabled() {
+		return BitOperations.testBit(Main.mmu.ram[0xff26], 0);
 	}
 
 }

@@ -2,7 +2,6 @@ package gb.apu;
 
 public abstract class Channel {
 	
-    public boolean chanOn = false;
     public static boolean lengthStep = false;
 
     // Frequency and settings
@@ -30,8 +29,25 @@ public abstract class Channel {
     };
     
     public void chanDisable() {
-        chanOn = false;
-        chanEnvVol = 0; // Mute
+        chanOff();
+        lengthStep = false;
+
+        // Frequency and settings
+        chanCounterSelect = false;
+        chanRawFreq = 0;
+
+        chanFreqTimer = 0;
+        chanLength = 0;
+
+        // Channel envelope
+        chanEnvOn = false;
+        chanEnvInc = false;
+        chanEnvInit = 0;
+        chanEnvVol = 0;
+        chanEnvInterval = 0;
+        chanEnvSweep = 0;
+        chanEnvClocks = 0;
+        resetChan();
     }
     
     public void chanUpdateEnvelope() {
@@ -62,6 +78,10 @@ public abstract class Channel {
             chanDisable();
     }
     
+    abstract void chanOn();
+    abstract void chanOff();
+    abstract boolean chanEnabled();
+    abstract void resetChan();
     abstract void chanUpdateFreq(int cycles);
     public abstract void chanTrigger();
     abstract float getSample();

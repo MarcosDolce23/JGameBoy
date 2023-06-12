@@ -28,10 +28,10 @@ public class Channel3 extends Channel {
 
 	@Override
 	public void chanTrigger() {
-        if (!chanPlayback)
+		chanOn();
+		
+		if (!chanPlayback)
             return;
-
-        chanOn = true;
 
         chanVolShift = chanInitVolShift;
 
@@ -54,7 +54,7 @@ public class Channel3 extends Channel {
 	
 	@Override
 	public void chanDisable() {
-        chanOn = false;
+        chanOff();
         chanVolShift = 4; // Mute
     }
 	
@@ -88,7 +88,7 @@ public class Channel3 extends Channel {
         	volshift = 4;
         }
 
-        if (chanOn)
+        if (chanEnabled())
             chanVolShift = volshift;
 	}
 
@@ -108,6 +108,30 @@ public class Channel3 extends Channel {
         // Trigger event
         if (BitOperations.testBit(value, 7))
             chanTrigger();
+	}
+
+	@Override
+	void resetChan() {
+		chanSampleStep = 0;
+		
+		// Volume shift
+	    chanInitVolShift = 0;
+	    chanVolShift = 4;
+	}
+
+	@Override
+	void chanOn() {
+		Main.mmu.ram[0xff26] |= 0x4;
+	}
+
+	@Override
+	void chanOff() {
+		Main.mmu.ram[0xff26] &= 0xfb;
+	}
+
+	@Override
+	boolean chanEnabled() {
+		return BitOperations.testBit(Main.mmu.ram[0xff26], 2);
 	}
 
 }

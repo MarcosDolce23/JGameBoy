@@ -1,5 +1,6 @@
 package gb.apu;
 
+import gb.Main;
 import gb.utils.BitOperations;
 
 // Sound Channel 2 — Pulse
@@ -23,7 +24,7 @@ public class Channel2 extends Channel {
 
 	@Override
 	public void chanTrigger() {
-        chanOn = true;
+        chanOn();
 
         // Restart envelope
         chanEnvVol = chanEnvInit;
@@ -76,5 +77,27 @@ public class Channel2 extends Channel {
 
 	@Override
 	public void NRX0(int value) {}
+
+	@Override
+	void resetChan() {
+		// Pattern duty
+	    chanPatternDuty = 0;
+	    chanDutyStep = 0;
+	}
+
+	@Override
+	void chanOn() {
+		Main.mmu.ram[0xff26] |= 0x2;
+	}
+
+	@Override
+	void chanOff() {
+		Main.mmu.ram[0xff26] &= 0xfd;
+	}
+
+	@Override
+	boolean chanEnabled() {
+		return BitOperations.testBit(Main.mmu.ram[0xff26], 1);
+	}
 
 }

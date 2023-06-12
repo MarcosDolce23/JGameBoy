@@ -63,25 +63,25 @@ public class AudioProcessingUnit {
         soundClocks += cycles;
         if (soundClocks >= soundInterval) {
             // Channel 1
-            if (ch1.chanOn) {
+            if (ch1.chanEnabled()) {
                 ch1.chanUpdateEnvelope();
                 ch1.chanUpdateSweep();
                 ch1.chanUpdateLength();
             }
 
             // Channel 2
-            if (ch2.chanOn) {
+            if (ch2.chanEnabled()) {
                 ch2.chanUpdateEnvelope();
                 ch2.chanUpdateLength();
             }
 
             // Channel 3
-            if (ch3.chanOn) {
+            if (ch3.chanEnabled()) {
                 ch3.chanUpdateLength();
             }
 
             // Channel 4
-            if (ch4.chanOn) {
+            if (ch4.chanEnabled()) {
                 ch4.chanUpdateEnvelope();
                 ch4.chanUpdateLength();
             }

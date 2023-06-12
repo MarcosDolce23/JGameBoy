@@ -1,5 +1,6 @@
 package gb.apu;
 
+import gb.Main;
 import gb.utils.BitOperations;
 
 // Sound Channel 4 — Noise
@@ -25,7 +26,7 @@ public class Channel4 extends Channel {
 
 	@Override
 	public void chanTrigger() {
-        chanOn = true;
+        chanOn();
 
         // Restart envelope
         chanEnvVol = chanEnvInit;
@@ -62,7 +63,7 @@ public class Channel4 extends Channel {
 		chanEnvInit =	(value >> 4) / 15f;
         chanEnvVol = (value >> 4) / 15f;
         
-        if (!chanOn)
+        if (!BitOperations.testBit(Main.mmu.ram[0xff26], 3))
         	chanEnvVol = 0;
 
         chanEnvInc = BitOperations.testBit(value, 3) ? true : false;
@@ -138,4 +139,30 @@ public class Channel4 extends Channel {
 
 	@Override
 	public void NRX0(int value) {}
+
+	@Override
+	void resetChan() {
+		chanFreq = 0;
+		LFSR = 0x7fff;
+		
+		chanClockShift = 0;
+		chanClockDivider = 0;
+		LFSRWidth = false;
+	}
+
+	@Override
+	void chanOn() {
+		Main.mmu.ram[0xff26] |= 0x8;
+	}
+
+	@Override
+	void chanOff() {
+		Main.mmu.ram[0xff26] &= 0xf7;
+	}
+
+	@Override
+	boolean chanEnabled() {
+		// TODO Auto-generated method stub
+		return BitOperations.testBit(Main.mmu.ram[0xff26], 3);
+	}
 }
