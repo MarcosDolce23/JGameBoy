@@ -310,154 +310,159 @@ public class MemoryManagementUnit {
 
 			// AUDIO RAM///
 
-			// ----- SQUARE CHANEL 1 ----- //
-			// NR10 - sweep reg
-			if (index == 0xff10) {
-				Main.apu.ch1.NRX0(value);
-				ram[index] = (byte) value;
-				return;
-			}
+			if ((index >= 0xff10) && (index <= 0xff25)) {
+				if (BitOperations.testBit(ram[0xff26], 7)) {
+					// ----- SQUARE CHANEL 1 ----- //
+					// NR10 - sweep reg
+					if (index == 0xff10) {
+						Main.apu.ch1.NRX0(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR11 - length and pattern duty
-			if (index == 0xff11) {
-				Main.apu.ch1.NRX1(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR11 - length and pattern duty
+					if (index == 0xff11) {
+						Main.apu.ch1.NRX1(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR12 - volume envelope
-			if (index == 0xff12) {
-				Main.apu.ch1.NRX2(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR12 - volume envelope
+					if (index == 0xff12) {
+						Main.apu.ch1.NRX2(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR13 - lower 8 bits of frequency
-			if (index == 0xff13) {
-				Main.apu.ch1.NRX3(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR13 - lower 8 bits of frequency
+					if (index == 0xff13) {
+						Main.apu.ch1.NRX3(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR14 - higher 3 bits of frequency
-			if (index == 0xff14) {
-				Main.apu.ch1.NRX4(value);
-				ram[index] = (byte) value;
+					// NR14 - higher 3 bits of frequency
+					if (index == 0xff14) {
+						Main.apu.ch1.NRX4(value);
+						ram[index] = (byte) value;
 
-				return;
-			}
+						return;
+					}
 
-			// ---- SQUARE CHANNEL 2 ---- //
-			// NR21 - length and pattern duty
-			if (index == 0xff16) {
-				Main.apu.ch2.NRX1(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// ---- SQUARE CHANNEL 2 ---- //
+					// NR21 - length and pattern duty
+					if (index == 0xff16) {
+						Main.apu.ch2.NRX1(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR22 - volume envelope
-			if (index == 0xff17) {
-				Main.apu.ch2.NRX2(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR22 - volume envelope
+					if (index == 0xff17) {
+						Main.apu.ch2.NRX2(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR23 - lower 8 bits of frequency
-			if (index == 0xff18) {
-				Main.apu.ch2.NRX3(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR23 - lower 8 bits of frequency
+					if (index == 0xff18) {
+						Main.apu.ch2.NRX3(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR24 - higher 3 bits of frequency
-			if (index == 0xff19) {
-				Main.apu.ch2.NRX4(value);
-				ram[index] = (byte) value;
+					// NR24 - higher 3 bits of frequency
+					if (index == 0xff19) {
+						Main.apu.ch2.NRX4(value);
+						ram[index] = (byte) value;
 
-				return;
-			}
+						return;
+					}
 
-			// ---- WAVE CHANNEL 3 ---- //
-			// NR30 - playback enable
-			if (index == 0xff1a) {
-				Main.apu.ch3.NRX0(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// ---- WAVE CHANNEL 3 ---- //
+					// NR30 - playback enable
+					if (index == 0xff1a) {
+						Main.apu.ch3.NRX0(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR31 - length
-			if (index == 0xff1b) {
-				Main.apu.ch3.NRX1(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR31 - length
+					if (index == 0xff1b) {
+						Main.apu.ch3.NRX1(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR32 - volume shift
-			if (index == 0xff1c) {
-				Main.apu.ch3.NRX2(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR32 - volume shift
+					if (index == 0xff1c) {
+						Main.apu.ch3.NRX2(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR33 - lower 8 bits of frequency
-			if (index == 0xff1d) {
-				Main.apu.ch3.NRX3(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR33 - lower 8 bits of frequency
+					if (index == 0xff1d) {
+						Main.apu.ch3.NRX3(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR34 - higher 3 bits of frequency
-			if (index == 0xff1e) {
-				Main.apu.ch3.NRX4(value);
-				ram[index] = (byte) value;
+					// NR34 - higher 3 bits of frequency
+					if (index == 0xff1e) {
+						Main.apu.ch3.NRX4(value);
+						ram[index] = (byte) value;
 
-				return;
-			}
+						return;
+					}
 
-			if (index == 0xff1f) {
-				ram[index] = (byte) value;
-				return;
-			}
+					if (index == 0xff1f) {
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR41 - Channel 4 length timer [write-only]
-			if (index == 0xff20) {
-				Main.apu.ch4.NRX1(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR41 - Channel 4 length timer [write-only]
+					if (index == 0xff20) {
+						Main.apu.ch4.NRX1(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR42 - Channel 4 volume & envelope
-			if (index == 0xff21) {
-				Main.apu.ch4.NRX2(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR42 - Channel 4 volume & envelope
+					if (index == 0xff21) {
+						Main.apu.ch4.NRX2(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR43
-			if (index == 0xff22) {
-				Main.apu.ch4.NRX3(value);
-				ram[index] = (byte) value;
-				return;
-			}
+					// NR43
+					if (index == 0xff22) {
+						Main.apu.ch4.NRX3(value);
+						ram[index] = (byte) value;
+						return;
+					}
 
-			// NR44
-			if (index == 0xff23) {
-				Main.apu.ch4.NRX4(value);
-				ram[index] = (byte) value;
+					// NR44
+					if (index == 0xff23) {
+						Main.apu.ch4.NRX4(value);
+						ram[index] = (byte) value;
 
-				return;
-			}
+						return;
+					}
 
-			// ---- AUDIO SETTINGS ---- //
-			// NR50 - i need this so pokemon blue dont freeze
-			if (index == 0xff24) {
-				ram[index] = (byte) value;
-				return;
-			}
+					// ---- AUDIO SETTINGS ---- //
+					// NR50 - i need this so pokemon blue dont freeze
+					if (index == 0xff24) {
+						ram[index] = (byte) value;
+						return;
+					}
 
-			if (index == 0xff25) {
-				ram[index] = (byte) value;
-				return;
+					if (index == 0xff25) {
+						ram[index] = (byte) value;
+						return;
+					}
+				} else
+					return;
 			}
 
 			// NR52 - Sound enable / status
@@ -589,7 +594,7 @@ public class MemoryManagementUnit {
 
 	private void setBootValues() {
 		// Hardware register after boot for DMG / MGB
-//		ram[0xff00] = (byte) 0xcf;
+		// ram[0xff00] = (byte) 0xcf;
 		ram[0xff02] = (byte) 0x7e;
 		ram[0xff04] = (byte) 0xab;
 		ram[0xff07] = (byte) 0xf8;
