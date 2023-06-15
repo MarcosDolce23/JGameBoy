@@ -28,10 +28,8 @@ public class Channel3 extends Channel {
 
 	@Override
 	public void chanTrigger() {
-		chanOn();
-		
-		if (!dacOn)
-            return;
+		if (dacOn)
+			chanOn();
 
         chanVolShift = chanInitVolShift;
 

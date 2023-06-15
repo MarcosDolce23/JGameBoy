@@ -33,7 +33,8 @@ public class Channel1 extends Channel {
 
 	@Override
 	public void chanTrigger() {
-        chanOn();
+        if (dacOn)
+            chanOn();
 
         // Restart envelope
         chanEnvVol = chanEnvInit;
