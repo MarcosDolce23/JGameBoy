@@ -30,24 +30,7 @@ public abstract class Channel {
     
     public void chanDisable() {
         chanOff();
-        lengthStep = false;
-
-        // Frequency and settings
-        chanCounterSelect = false;
-        chanRawFreq = 0;
-
-        chanFreqTimer = 0;
-        chanLength = 0;
-
-        // Channel envelope
-        chanEnvOn = false;
-        chanEnvInc = false;
-        chanEnvInit = 0;
-        chanEnvVol = 0;
-        chanEnvInterval = 0;
-        chanEnvSweep = 0;
-        chanEnvClocks = 0;
-        resetChan();
+        chanEnvVol = 0; // Mute
     }
     
     public void chanUpdateEnvelope() {
@@ -74,8 +57,11 @@ public abstract class Channel {
     }
     
     public void chanUpdateLength() {
-        if (lengthStep && chanCounterSelect && (--chanLength == 0))
-            chanDisable();
+        if (lengthStep && chanCounterSelect) {
+            tickLength();
+            if (chanLength == 0)
+                chanDisable();
+        }
     }
     
     abstract void chanOn();
@@ -84,6 +70,7 @@ public abstract class Channel {
     abstract void resetChan();
     abstract void chanUpdateFreq(int cycles);
     public abstract void chanTrigger();
+    abstract void tickLength();
     abstract float getSample();
     public abstract void NRX0(int value);
     public abstract void NRX1(int value);

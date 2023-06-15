@@ -62,28 +62,29 @@ public class AudioProcessingUnit {
         // Every 512 hz ...
         soundClocks += cycles;
         if (soundClocks >= soundInterval) {
+            ch1.chanUpdateLength();
+            ch2.chanUpdateLength();
+            ch3.chanUpdateLength();
+            ch4.chanUpdateLength();
+            
             // Channel 1
             if (ch1.chanEnabled()) {
                 ch1.chanUpdateEnvelope();
                 ch1.chanUpdateSweep();
-                ch1.chanUpdateLength();
             }
 
             // Channel 2
             if (ch2.chanEnabled()) {
                 ch2.chanUpdateEnvelope();
-                ch2.chanUpdateLength();
             }
 
             // Channel 3
             if (ch3.chanEnabled()) {
-                ch3.chanUpdateLength();
             }
 
             // Channel 4
             if (ch4.chanEnabled()) {
                 ch4.chanUpdateEnvelope();
-                ch4.chanUpdateLength();
             }
 
             Channel.lengthStep = !Channel.lengthStep;

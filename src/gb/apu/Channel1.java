@@ -167,4 +167,12 @@ public class Channel1 extends Channel {
 		return BitOperations.testBit(Main.mmu.ram[0xff26], 0);
 	}
 
+    @Override
+    void tickLength() {
+        chanLength--;
+        int lenght = Main.mmu.ram[0xff11] & 0x3f;
+        lenght++;
+        Main.mmu.ram[0xff11] = (byte) ((Main.mmu.ram[0xff11] & 0xc0) | (lenght & 0x3f));
+    }
+
 }

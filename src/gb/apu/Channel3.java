@@ -37,7 +37,8 @@ public class Channel3 extends Channel {
 
         // Restart length
         if (chanLength == 0)
-            chanLength = 256; // Full
+			chanLength = 256; // Full
+            
 	}
 
 	@Override
@@ -133,5 +134,13 @@ public class Channel3 extends Channel {
 	boolean chanEnabled() {
 		return BitOperations.testBit(Main.mmu.ram[0xff26], 2);
 	}
+
+	@Override
+    void tickLength() {
+		chanLength--;
+        int lenght = Main.mmu.ram[0xff1b] & 0xff;
+        lenght++;
+        Main.mmu.ram[0xff1b] = (byte) (lenght & 0xff);
+    }
 
 }

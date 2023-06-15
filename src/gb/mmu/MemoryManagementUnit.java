@@ -14,6 +14,8 @@ public class MemoryManagementUnit {
 
 	// Return an int representation of the value of the memory at the give index
 	public int getByte(int index) {
+		if (index > 0xffff)
+			return 0xff;
 
 		// Cartridge has memory controller?
 		if (Main.cartridge.mbc1 || Main.cartridge.mbc2 || Main.cartridge.mbc3) {
@@ -241,6 +243,8 @@ public class MemoryManagementUnit {
 
 	// Set the position index of the memory with the byte representation of value
 	public void setByte(int index, int value) {
+		if (index > 0xffff)
+			return;
 
 		// Read Only Memory for Rom
 		if (index < 0x8000) {

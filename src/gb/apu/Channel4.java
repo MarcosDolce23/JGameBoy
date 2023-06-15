@@ -162,7 +162,15 @@ public class Channel4 extends Channel {
 
 	@Override
 	boolean chanEnabled() {
-		// TODO Auto-generated method stub
 		return BitOperations.testBit(Main.mmu.ram[0xff26], 3);
 	}
+
+	@Override
+    void tickLength() {
+        chanLength--;
+        int lenght = Main.mmu.ram[0xff20] & 0x3f;
+        lenght++;
+        Main.mmu.ram[0xff20] = (byte) ((Main.mmu.ram[0xff20] & 0xc0) | (lenght & 0x3f));
+    }
+
 }
