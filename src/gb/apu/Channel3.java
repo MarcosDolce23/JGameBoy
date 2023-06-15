@@ -13,7 +13,7 @@ public class Channel3 extends Channel {
     public int chanInitVolShift = 0;
     public int chanVolShift = 4;
     
-    public boolean chanPlayback = false;
+    public boolean dacOn = false;
     
 	@Override
 	void chanUpdateFreq(int cycles) {
@@ -30,7 +30,7 @@ public class Channel3 extends Channel {
 	public void chanTrigger() {
 		chanOn();
 		
-		if (!chanPlayback)
+		if (!dacOn)
             return;
 
         chanVolShift = chanInitVolShift;
@@ -68,7 +68,7 @@ public class Channel3 extends Channel {
 	
 	@Override
 	public void NRX0(int value) {
-		if (!(chanPlayback = BitOperations.testBit(value, 7) ? true : false))
+		if (!(dacOn = BitOperations.testBit(value, 7) ? true : false))
             chanDisable();
 	}
 	

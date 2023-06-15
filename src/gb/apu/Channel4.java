@@ -60,6 +60,9 @@ public class Channel4 extends Channel {
 
 	@Override
 	public void NRX2(int value) {
+        if (!(dacOn = (value & 0xf8) == 0 ? false : true))
+            chanDisable();
+
 		chanEnvInit =	(value >> 4) / 15f;
         chanEnvVol = (value >> 4) / 15f;
         

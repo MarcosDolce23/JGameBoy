@@ -7,6 +7,7 @@ public abstract class Channel {
     // Frequency and settings
     public boolean chanCounterSelect = false;
     public int chanRawFreq = 0;
+    public boolean dacOn = false;
 
     public int chanFreqTimer = 0;
     public int chanLength = 0;
